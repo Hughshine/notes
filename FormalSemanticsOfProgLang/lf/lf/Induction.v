@@ -563,42 +563,6 @@ Proof.
     reflexivity.
   Qed.
 
-(* Theorem plus_elim1 : forall m n : nat,
-  S m = S n -> m = n.
-Proof. 
-  intros m n.
-  induction m as [| m' IHm'].
-  -  *)
-
-(* Theorem plus_elim1: forall a b: nat,
-  a + 1 = b + 1 -> a = b.
-Proof.
-  intros a b.
-  induction a as [| a' H].
-  - simpl.
-
-(* 证明加法消去律 是否必须引入减法？？*)
-Theorem plus_elim: forall m n p : nat,
-  m + n = m + p -> n = p.
-Proof.
-  intros m n p.
-  induction m as [| m' IHm'].
-  - rewrite plus_O_n. rewrite -> plus_O_n.
-    intros H.
-    rewrite H. reflexivity.
-  - 
-    rewrite <- plus_1_l.
-    rewrite <- plus_comm. 
-    assert(H : 1 + m' + p = p + (1 + m')). {
-      rewrite <- plus_comm.
-      reflexivity.
-    }
-    rewrite H.
-    simpl.
-    
-    assert (H' : ) 
-    intros H. *)
-
 
 Theorem mult_comm : forall m n : nat,
   m * n = n * m.
@@ -628,31 +592,48 @@ Check leb.
 Theorem leb_refl : forall n:nat,
   true = (n <=? n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  induction n.
+  - reflexivity.
+  - simpl. 
+    rewrite IHn. reflexivity.  Qed. (*定义是inductive的*)
 
 Theorem zero_nbeq_S : forall n:nat,
   0 =? (S n) = false.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  simpl. reflexivity.  Qed.  (*完全根据定义本身的base情况*)
 
 Theorem andb_false_r : forall b : bool,
   andb b false = false.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b.
+  destruct b.
+  - reflexivity.
+  - reflexivity.  Qed. (*定义是枚举的*)
+
 
 Theorem plus_ble_compat_l : forall n m p : nat,
   n <=? m = true -> (p + n) <=? (p + m) = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p. simpl.
+  intros H.
+  induction p as [| p' IHp'].
+  - simpl. rewrite -> H. reflexivity.
+  - simpl.  rewrite -> IHp'. reflexivity.
+  Qed.
 
 Theorem S_nbeq_0 : forall n:nat,
   (S n) =? 0 = false.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  simpl. reflexivity.  Qed.
 
 Theorem mult_1_l : forall n:nat, 1 * n = n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  simpl. rewrite -> plus_comm. rewrite -> plus_O_n.
+  reflexivity.  Qed.
 
 Theorem all3_spec : forall b c : bool,
     orb
@@ -661,17 +642,59 @@ Theorem all3_spec : forall b c : bool,
                (negb c))
   = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b c.
+  destruct b.
+  - simpl. 
+    destruct c.
+    * reflexivity.
+    * reflexivity.
+  - simpl.
+    destruct c. 
+    * reflexivity.
+    * reflexivity.
+      Qed.
 
 Theorem mult_plus_distr_r : forall n m p : nat,
   (n + m) * p = (n * p) + (m * p).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p.
+  induction p as [| p' IHp'].
+  - rewrite mult_0_r. rewrite mult_0_r. rewrite mult_0_r.
+    reflexivity.
+  - simpl.
+    rewrite mult_incr_r.
+    rewrite mult_incr_r.
+    rewrite mult_incr_r.
+    rewrite IHp'.
+    rewrite <- plus_assoc. 
+    rewrite <- plus_assoc. 
+    assert (H: m + (n*p' + m*p') = (n*p' + (m + m * p'))). {
+      rewrite plus_swap.
+      reflexivity.
+    }
+    rewrite H.
+    reflexivity.  Qed.
 
 Theorem mult_assoc : forall n m p : nat,
   n * (m * p) = (n * m) * p.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p.
+  rewrite -> mult_comm.
+  induction n as [| n' IHn'].
+  - simpl.
+    rewrite mult_comm.
+    reflexivity.
+  - simpl.
+    rewrite mult_comm.
+    simpl.
+    rewrite mult_plus_distr_r.
+    rewrite <- IHn'.
+    assert(H: n' * (m * p) = m * p * n'). {
+      rewrite mult_comm.
+      reflexivity.
+    }
+    rewrite <- H.
+    reflexivity.  Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (eqb_refl)  
@@ -731,7 +754,39 @@ Proof.
     definitions to make the property easier to prove, feel free to
     do so! *)
 
-(* FILL IN HERE *)
+Inductive bin : Type :=
+  | Z
+  | A (n : bin)
+  | B (n : bin).
+
+(** (a) Complete the definitions below of an increment function [incr]
+        for binary numbers, and a function [bin_to_nat] to convert
+        binary numbers to unary numbers. *)
+(* A => 0, B => 1*)
+Fixpoint incr (m:bin) : bin :=
+  match m with
+    | Z => B Z
+    | A p => B p
+    | B p => A (incr p)
+  end.
+  
+Fixpoint bin_to_nat (m:bin) : nat :=
+  match m with
+    | Z => O
+    | A p => 2 * (bin_to_nat p)
+    | B p => 2 * (bin_to_nat p) + 1
+  end.
+  
+Theorem invar_of_bin2net: forall b : bin,
+  S (bin_to_nat (b)) = bin_to_nat (incr(b)).
+Proof.
+  intros b.
+  induction b.
+  - simpl. reflexivity.
+  - simpl. rewrite <- plus_1_l. rewrite plus_comm. reflexivity.
+  - simpl. rewrite <- plus_O_n.
+    rewrite <- IHb.  simpl.
+    assert (S(bin_to_nat n + 0) = (bin_to_nat b + 0) + 1)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_binary_commute : option (nat*string) := None.
