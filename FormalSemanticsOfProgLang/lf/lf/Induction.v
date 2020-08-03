@@ -542,16 +542,75 @@ Proof.
     rewrite -> H'.
     reflexivity. 
   }
+  rewrite H. reflexivity.  Qed.
 
 (** Now prove commutativity of multiplication.  (You will probably
     need to define and prove a separate subsidiary theorem to be used
     in the proof of this one.  You may find that [plus_swap] comes in
-    handy.) *)
+    handy.) TODO *)
+(* Theorem mult_0_r: forall m,
+  m * 0 = 0.
+Proof.
+  induction m as [| m' H] *)
+Theorem mult_incr_r : forall m n,
+  m * S n = m + m * n.
+Proof. 
+  intros m n.
+  induction m as [| m' IHm].
+  - reflexivity.
+  - simpl. rewrite -> IHm.
+    rewrite plus_swap.
+    reflexivity.
+  Qed.
+
+(* Theorem plus_elim1 : forall m n : nat,
+  S m = S n -> m = n.
+Proof. 
+  intros m n.
+  induction m as [| m' IHm'].
+  -  *)
+
+(* Theorem plus_elim1: forall a b: nat,
+  a + 1 = b + 1 -> a = b.
+Proof.
+  intros a b.
+  induction a as [| a' H].
+  - simpl.
+
+(* 证明加法消去律 是否必须引入减法？？*)
+Theorem plus_elim: forall m n p : nat,
+  m + n = m + p -> n = p.
+Proof.
+  intros m n p.
+  induction m as [| m' IHm'].
+  - rewrite plus_O_n. rewrite -> plus_O_n.
+    intros H.
+    rewrite H. reflexivity.
+  - 
+    rewrite <- plus_1_l.
+    rewrite <- plus_comm. 
+    assert(H : 1 + m' + p = p + (1 + m')). {
+      rewrite <- plus_comm.
+      reflexivity.
+    }
+    rewrite H.
+    simpl.
+    
+    assert (H' : ) 
+    intros H. *)
+
 
 Theorem mult_comm : forall m n : nat,
   m * n = n * m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros m n.
+  induction n as [| n' IHn'].
+  - rewrite mult_0_l. 
+    rewrite mult_0_r. reflexivity.
+  - simpl. (* 乘法是加法的指数，数学归纳法，固定其中一个、展开另一个即可. *)
+    rewrite -> mult_incr_r.
+    rewrite -> IHn'.
+    reflexivity.  Qed.  
 (** [] *)
 
 (** **** Exercise: 3 stars, standard, optional (more_exercises)  
