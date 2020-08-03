@@ -257,19 +257,35 @@ Proof.
     induction hypothesis about [n - 2]. The following lemma gives an
     alternative characterization of [evenb (S n)] that works better
     with induction: *)
+(* 关于2的递归定义，不方便使用归纳，所以先弄个引理*)
+
+Theorem negb2_iden : forall b : bool, 
+  negb (negb b) = b.
+Proof.
+  destruct b.
+  - reflexivity. 
+  - reflexivity.  Qed.
+
 
 Theorem evenb_S : forall n : nat,
   evenb (S n) = negb (evenb n).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+  simpl. intros n.
+  induction n as [| n' IHn'].
+  - reflexivity.
+  - simpl. rewrite -> IHn'.
+    rewrite -> negb2_iden.
+    reflexivity.  Qed.
+    
+
+  (** [] *)
 
 (** **** Exercise: 1 star, standard (destruct_induction)  
 
     Briefly explain the difference between the tactics [destruct]
     and [induction].
 
-(* destruct是枚举所有情况，induction是归纳法.*)
+(* destruct是枚举所有（有限的）情况，induction是归纳法, 归纳所有自然数情况（是无限的）.*)
 *)
 
 (* Do not modify the following line: *)
@@ -340,7 +356,7 @@ Abort.
     a local lemma stating that [n + m = m + n] (for the particular [m]
     and [n] that we are talking about here), prove this lemma using
     [plus_comm], and then use it to do the desired rewrite. *)
-
+(*在需要的某个位置使用对应定理（比如交换律、结合律之类）*)
 Theorem plus_rearrange : forall n m p q : nat,
   (n + m) + (p + q) = (m + n) + (p + q).
 Proof.
@@ -472,12 +488,25 @@ Proof.
 
     Theorem: Addition is commutative.
 
-    Proof: (* FILL IN HERE *)
+    Proof: By indection on n.
+      - First suppose n = 0, we must show 0 + m = m + 0.
+      -- This follows directly the definition by `+`
+      - Second, suppose n = S n', where n' + m = m + n'
+      -- we should show that S n' + m = m + S n'.
+      -- By the definition of `+`, this follows from 
+      -- S (n' + m) = m + S n'
+      -- rewrite it with induction hypothesis, 
+      -- S (m + n') = m + S n'
+      -- rewrite it with plus_n_Sm, we get
+      -- m + S n' = m + S n', which is clearly correct. 
 *)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_plus_comm_informal : option (nat*string) := None.
 (** [] *)
+
+(* Theorem eqb_refl_formal : forall n : bool,
+  (true = n) =? n. *)
 
 (** **** Exercise: 2 stars, standard, optional (eqb_refl_informal)  
 
@@ -486,8 +515,11 @@ Definition manual_grade_for_plus_comm_informal : option (nat*string) := None.
     paraphrase the Coq tactics into English!
 
     Theorem: [true = n =? n] for any [n].
-
-    Proof: (* FILL IN HERE *)
+    Proof: 
+      Firstly, we destruct the prop by n into 2 subgoals.
+      - The first one is  true = true =? true. which is clear true by definition.
+      - The second one is true = false =? false. which is also clearly true.
+      - Qed.
 
     [] *)
 
@@ -502,7 +534,14 @@ Definition manual_grade_for_plus_comm_informal : option (nat*string) := None.
 Theorem plus_swap : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p.
+  rewrite plus_assoc.
+  assert (H : m + (n + p) = n + m + p). {
+    rewrite -> plus_assoc. 
+    assert (H' : m + n = n + m). { rewrite -> plus_comm. reflexivity. }
+    rewrite -> H'.
+    reflexivity. 
+  }
 
 (** Now prove commutativity of multiplication.  (You will probably
     need to define and prove a separate subsidiary theorem to be used
