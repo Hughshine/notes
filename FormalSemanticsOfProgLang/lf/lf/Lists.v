@@ -519,7 +519,7 @@ Theorem bag_theorem : forall v s,
   count v (add v s) = S (count v s).
 Proof.
   intros v s.
-  simpl.
+  (* simpl. *)
   induction s.
   - simpl. 
     rewrite eqb_natid.
@@ -559,6 +559,7 @@ Proof. reflexivity. Qed.
     analysis on the possible shapes (empty or non-empty) of an unknown
     list. *)
 
+Compute pred 0.
 Theorem tl_length_pred : forall l:natlist,
   pred (length l) = length (tl l).
 Proof.
@@ -815,6 +816,8 @@ Proof.
      The main property again follows by induction on [l], using the
      observation together with the induction hypothesis in the case
      where [l = n'::l']. [] *)
+     (*将一位移到后面去，是对的，可以用induction证明；不断做这个操作（对l做induction），
+     直到l为空，可证明定理*)
 
 (** Which style is preferable in a given situation depends on
     the sophistication of the expected audience and how similar the
@@ -837,7 +840,7 @@ Proof.
     uncommenting the following line to see a list of theorems that we
     have proved about [rev]: *)
 
-(*  Search rev. *)
+ (* Search rev. *)
 
 (** Keep [Search] in mind as you do the following exercises and
     throughout the rest of the book; it can save you a lot of time!
@@ -856,17 +859,39 @@ Proof.
 Theorem app_nil_r : forall l : natlist,
   l ++ [] = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l.
+  induction l as [| n l' IHl'].
+  - reflexivity.
+  - simpl.
+    rewrite IHl'. reflexivity.  Qed.
 
 Theorem rev_app_distr: forall l1 l2 : natlist,
   rev (l1 ++ l2) = rev l2 ++ rev l1.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l1 l2.
+  induction l1.
+  - simpl.
+    rewrite app_nil_r. 
+    reflexivity.
+  - simpl.
+    rewrite IHl1.
+    rewrite app_assoc.
+    reflexivity.
+    Qed.
 
 Theorem rev_involutive : forall l : natlist,
   rev (rev l) = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l.
+  induction l as [| n l' IHl'].
+  - (* l = [ ] *)
+    reflexivity.
+  - (* l = n :: l' *)
+    simpl.
+    rewrite -> rev_app_distr. 
+    simpl.
+    rewrite IHl'. 
+    reflexivity.  Qed.
 
 (** There is a short solution to the next one.  If you find yourself
     getting tangled up, step back and try to look for a simpler
@@ -875,14 +900,24 @@ Proof.
 Theorem app_assoc4 : forall l1 l2 l3 l4 : natlist,
   l1 ++ (l2 ++ (l3 ++ l4)) = ((l1 ++ l2) ++ l3) ++ l4.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l1 l2 l3 l4.
+  (* Search app. *)
+  rewrite app_assoc.
+  rewrite app_assoc.
+  reflexivity.  Qed.
 
 (** An exercise about your implementation of [nonzeros]: *)
 
 Lemma nonzeros_app : forall l1 l2 : natlist,
   nonzeros (l1 ++ l2) = (nonzeros l1) ++ (nonzeros l2).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l1 l2.
+  induction l1 as [| v1 l1' IHl1'].
+  - simpl. reflexivity.
+  - simpl. destruct v1.
+    * rewrite IHl1'. reflexivity.
+    * rewrite IHl1'. simpl. reflexivity.  
+    Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (eqblist)  
@@ -891,25 +926,35 @@ Proof.
     lists of numbers for equality.  Prove that [eqblist l l]
     yields [true] for every list [l]. *)
 
-Fixpoint eqblist (l1 l2 : natlist) : bool
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint eqblist (l1 l2 : natlist) : bool :=
+  match l1, l2 with
+  | [], [] => true
+  | _, [] => false
+  | [], _ => false
+  | x::xs, y::ys => if (x =? y) then (eqblist xs ys) else false
+  end.
 
 Example test_eqblist1 :
   (eqblist nil nil = true).
- (* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
 
 Example test_eqblist2 :
   eqblist [1;2;3] [1;2;3] = true.
-(* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
 
 Example test_eqblist3 :
   eqblist [1;2;3] [1;2;4] = false.
- (* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
 
 Theorem eqblist_refl : forall l:natlist,
   true = eqblist l l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l.
+  induction l as [| n l' IHl'].
+  - simpl. reflexivity. 
+  - simpl. rewrite eqb_natid.
+    rewrite IHl'.
+    reflexivity.  Qed.   
 (** [] *)
 
 (* ================================================================= *)
@@ -922,7 +967,9 @@ Proof.
 Theorem count_member_nonzero : forall (s : bag),
   1 <=? (count 1 (1 :: s)) = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros s.
+  simpl.
+  reflexivity.  Qed.
 (** [] *)
 
 (** The following lemma about [leb] might help you in the next exercise. *)
@@ -942,7 +989,13 @@ Proof.
 Theorem remove_does_not_increase_count: forall (s : bag),
   (count 0 (remove_one 0 s)) <=? (count 0 s) = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros s.
+  induction s as [|s' IHs'].
+  - simpl. reflexivity.
+  - simpl. destruct s'.
+    * simpl. rewrite leb_n_Sn. reflexivity.
+    * simpl. rewrite IHIHs'. reflexivity.   
+  Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, standard, optional (bag_count_sum)  
@@ -951,9 +1004,23 @@ Proof.
     involving the functions [count] and [sum], and prove it using
     Coq.  (You may find that the difficulty of the proof depends on
     how you defined [count]!) *)
-(* FILL IN HERE 
-
-    [] *)
+Search bag.
+Theorem bag_count_sum: forall (v : nat) (b1 b2 : bag), 
+  count v b1 + count v b2 = count v (sum b1 b2).
+Proof. 
+  intros v b1 b2.
+  induction b1 as [| v1 b1' IHb1'].
+  - simpl. reflexivity.
+  - simpl.
+    destruct (v =? v1).
+    * (* v == v1 *)
+      simpl.    
+      rewrite IHb1'. 
+      reflexivity.
+    * (* v != v1 *)
+      rewrite IHb1'.
+      reflexivity.
+  Qed.
 
 (** **** Exercise: 4 stars, advanced (rev_injective)  
 
@@ -962,8 +1029,37 @@ Proof.
     forall (l1 l2 : natlist), rev l1 = rev l2 -> l1 = l2.
 
     (There is a hard way and an easy way to do this.) *)
+    (* 这里的等号是什么？？ 没看到定义. 对于 false -> x 的命题 要怎样证？*)
+(* Theorem rev_id: forall l1 l2 : natlist,
+  eqblist l1 l2 = true -> eqblist (rev l1) (rev l2) = true.
+Proof.
+  intros l1 l2.
+  destruct l1. destruct l2.
+  - reflexivity.
+  - assert(H': (eqblist []  (n::l2)) = false). {
+      simpl. reflexivity.
+    }
+    rewrite H'. 
+    assert(H': false = true -> ).
+  - 
 
-(* FILL IN HERE *)
+
+Theorem rev_injective : forall (l1 l2 : natlist),
+  rev l1 = rev l2 -> l1 = l2.
+Proof.
+  intros l1 l2.
+  (* Search rev *)
+  induction rev. *)
+  (* destruct l1 as [|v1 l1']. destruct l2 as [|v2 l2'].
+  - simpl. reflexivity. 
+  - simpl. 
+    assert (H': (eqblist [] (rev l2' ++ [v2])) = false). {
+      simpl.
+      induction l2'. 
+      - simpl. reflexivity. 
+      - simpl. 
+
+    } *)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_rev_injective : option (nat*string) := None.
