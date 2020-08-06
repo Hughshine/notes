@@ -708,7 +708,11 @@ Proof.
 Theorem eqb_refl : forall n : nat,
   true = (n =? n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n.
+  induction n as [| n' IHn'].
+  - reflexivity.
+  - simpl. rewrite -> IHn'.
+    reflexivity.  Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (plus_swap')  
@@ -725,7 +729,15 @@ Proof.
 Theorem plus_swap' : forall n m p : nat,
   n + (m + p) = m + (n + p).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m p.
+  rewrite plus_assoc. (*n + m + p = m + (n + p)*)
+  rewrite plus_assoc. (*n + m + p = m + n + p*)
+  rewrite plus_comm.
+  replace (n + m) with (m + n).
+  - rewrite plus_comm. reflexivity.
+  - rewrite plus_comm. reflexivity.
+  Qed.
+ 
 (** [] *)
 
 (** **** Exercise: 3 stars, standard, recommended (binary_commute)  
@@ -786,8 +798,14 @@ Proof.
   - simpl. rewrite <- plus_1_l. rewrite plus_comm. reflexivity.
   - simpl. rewrite <- plus_O_n.
     rewrite <- IHb.  simpl.
-    assert (S(bin_to_nat n + 0) = (bin_to_nat b + 0) + 1)
-
+    assert (H: S(bin_to_nat b + 0) = (bin_to_nat b + 0) + 1). {
+      rewrite <- plus_1_l.
+      rewrite <- plus_comm. reflexivity.
+    }
+    rewrite H.
+    rewrite <- plus_n_O.
+    rewrite <- plus_assoc.
+    reflexivity.  Qed.
 (* Do not modify the following line: *)
 Definition manual_grade_for_binary_commute : option (nat*string) := None.
 (** [] *)
@@ -801,20 +819,50 @@ Definition manual_grade_for_binary_commute : option (nat*string) := None.
     (a) First, write a function to convert natural numbers to binary
         numbers. *)
 
-Fixpoint nat_to_bin (n:nat) : bin
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint nat_to_bin (n:nat) : bin :=
+  match n with 
+  | O => Z
+  | S n => incr (nat_to_bin n)
+  end.
+
+Example test1_nat2bin: nat_to_bin (S (S O)) = A (B Z).
+Proof. simpl. reflexivity.  Qed.
+
+Example test2_nat2bin: nat_to_bin (S(S (S O))) = B (B Z).
+Proof. simpl. reflexivity.  Qed.
+
 
 (** Prove that, if we start with any [nat], convert it to binary, and
     convert it back, we get the same [nat] we started with.  (Hint: If
     your definition of [nat_to_bin] involved any extra functions, you
     may need to prove a subsidiary lemma showing how such functions
     relate to [nat_to_bin].) *)
+Theorem swap_net2bin_S: forall n: nat,
+  nat_to_bin (S n) = incr (nat_to_bin n).
+Proof.
+  reflexivity.  Qed.
+
+Theorem swap_bin2net_incr: forall b: bin, 
+  bin_to_nat (incr b) = S (bin_to_nat b).
+Proof.
+  intros b.
+  induction b.
+  - simpl. reflexivity.
+  - replace (incr (A b)) 
+  (* - rewrite IHb. *)
+  Admitted.
+
 
 Theorem nat_bin_nat : forall n, bin_to_nat (nat_to_bin n) = n.
 Proof.
-  (* FILL IN HERE *) Admitted.
-
-(* Do not modify the following line: *)
+  intros n.
+  induction n.
+  - reflexivity.
+  - rewrite swap_net2bin_S.
+    rewrite swap_bin2net_incr.
+    rewrite IHn.
+    reflexivity.  Qed.
+    (* Do not modify the following line: *)
 Definition manual_grade_for_binary_inverse_a : option (nat*string) := None.
 
 (** (b) One might naturally expect that we should also prove the
@@ -838,7 +886,7 @@ Definition manual_grade_for_binary_inverse_b : option (nat*string) := None.
         to prove the main statement, see where you get stuck, and see
         if you can find a lemma -- perhaps requiring its own inductive
         proof -- that will allow the main proof to make progress.) Don't
-        define thi using nat_to_bin and bin_to_nat! *)
+        define this using nat_to_bin and bin_to_nat! *)
 
 (* FILL IN HERE *)
 
