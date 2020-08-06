@@ -1030,26 +1030,29 @@ Proof.
 
     (There is a hard way and an easy way to do this.) *)
     (* 这里的等号是什么？？ 没看到定义. 对于 false -> x 的命题 要怎样证？*)
-(* Theorem rev_id: forall l1 l2 : natlist,
-  eqblist l1 l2 = true -> eqblist (rev l1) (rev l2) = true.
+
+Search rev.
+
+Theorem rev_injective_forward: forall (l1 l2 : natlist),
+  l1 = l2 -> rev l1 = rev l2.
 Proof.
   intros l1 l2.
-  destruct l1. destruct l2.
-  - reflexivity.
-  - assert(H': (eqblist []  (n::l2)) = false). {
-      simpl. reflexivity.
-    }
-    rewrite H'. 
-    assert(H': false = true -> ).
-  - 
+  intros H.
+  destruct l1.
+  - rewrite H. reflexivity.
+  - rewrite H. reflexivity.
+  Qed.
 
 
 Theorem rev_injective : forall (l1 l2 : natlist),
   rev l1 = rev l2 -> l1 = l2.
 Proof.
   intros l1 l2.
-  (* Search rev *)
-  induction rev. *)
+  replace (l1 = l2) with (rev (rev l1) = rev (rev l2)).
+  - remember (rev l1) as l1'. remember (rev l2) as l2'. 
+    apply rev_injective_forward.
+  - rewrite rev_involutive. rewrite rev_involutive. reflexivity.
+  Qed.
   (* destruct l1 as [|v1 l1']. destruct l2 as [|v2 l2'].
   - simpl. reflexivity. 
   - simpl. 
@@ -1072,6 +1075,8 @@ Definition manual_grade_for_rev_injective : option (nat*string) := None.
     element of some list.  If we give it type [nat -> natlist -> nat],
     then we'll have to choose some number to return when the list is
     too short... *)
+
+(* 有些像Haskell中的Maybe*)
 
 Fixpoint nth_bad (l:natlist) (n:nat) : nat :=
   match l with
@@ -1132,7 +1137,7 @@ Fixpoint nth_error' (l:natlist) (n:nat) : natoption :=
     language, with one small generalization.  Since the boolean type
     is not built in, Coq actually supports conditional expressions over
     _any_ inductively defined type with exactly two constructors.  The
-    guard is considered true if it evaluates to the first constructor
+    guard is considered true if it evaluates to the ****first constructor**** 
     in the [Inductive] definition and false if it evaluates to the
     second. *)
 
@@ -1150,17 +1155,21 @@ Definition option_elim (d : nat) (o : natoption) : nat :=
     Using the same idea, fix the [hd] function from earlier so we don't
     have to pass a default element for the [nil] case.  *)
 
-Definition hd_error (l : natlist) : natoption
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition hd_error (l : natlist) : natoption :=
+  match l with 
+  | nil => None
+  | h :: t => Some h
+  end.
 
 Example test_hd_error1 : hd_error [] = None.
- (* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
 
 Example test_hd_error2 : hd_error [1] = Some 1.
- (* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
 
 Example test_hd_error3 : hd_error [5;6] = Some 5.
- (* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
+
 (** [] *)
 
 (** **** Exercise: 1 star, standard, optional (option_elim_hd)  
@@ -1170,7 +1179,11 @@ Example test_hd_error3 : hd_error [5;6] = Some 5.
 Theorem option_elim_hd : forall (l:natlist) (default:nat),
   hd default l = option_elim default (hd_error l).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros l default.
+  destruct l. 
+  - simpl. reflexivity. 
+  - simpl. reflexivity.  Qed.
+
 (** [] *)
 
 End NatList.
@@ -1204,7 +1217,9 @@ Definition eqb_id (x1 x2 : id) :=
 (** **** Exercise: 1 star, standard (eqb_id_refl)  *)
 Theorem eqb_id_refl : forall x, true = eqb_id x x.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros x. destruct x.
+  simpl. rewrite <- eqb_refl. reflexivity. Qed.
+
 (** [] *)
 
 (** Now we define the type of partial maps: *)
@@ -1234,7 +1249,7 @@ Definition update (d : partial_map)
 (** Last, the [find] function searches a [partial_map] for a given
     key.  It returns [None] if the key was not found and [Some val] if
     the key was associated with [val]. If the same key is mapped to
-    multiple values, [find] will return the first one it
+    multiple values, [find] will return **the first one** it
     encounters. *)
 
 Fixpoint find (x : id) (d : partial_map) : natoption :=
@@ -1250,7 +1265,8 @@ Theorem update_eq :
   forall (d : partial_map) (x : id) (v: nat),
     find x (update d x v) = Some v.
 Proof.
- (* FILL IN HERE *) Admitted.
+  intros d x v. 
+  simpl. rewrite <- eqb_id_refl. reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, standard (update_neq)  *)
@@ -1258,7 +1274,9 @@ Theorem update_neq :
   forall (d : partial_map) (x y : id) (o: nat),
     eqb_id x y = false -> find x (update d y o) = find x d.
 Proof.
- (* FILL IN HERE *) Admitted.
+  intros d x y o.
+  intros H.
+  simpl. rewrite H. reflexivity.  Qed.
 (** [] *)
 End PartialMap.
 
@@ -1273,7 +1291,10 @@ Inductive baz : Type :=
 (** How _many_ elements does the type [baz] have? (Explain in words,
     in a comment.) *)
 
-(* FILL IN HERE *)
+(* 归纳定义需要有终点，这个Type没有，也就没有elements 
+https://cs.stackexchange.com/questions/29365/baz-num-elts-exercise-from-software-foundations
+这甚至可以被证明：证明baz与False存在双射
+*)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_baz_num_elts : option (nat*string) := None.
