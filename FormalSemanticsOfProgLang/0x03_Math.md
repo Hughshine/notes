@@ -74,3 +74,71 @@ Function Types, right associative $A \rightarrow B \rightarrow C = A \rightarrow
 Currying.
 
 ## Products
+
+Generalized Cartesian Products. n-tuple. 
+
+Tuples as Functions. 将(x,y)视为一个函数，输入0时得到x，输入1时得到y. 此时笛卡尔积可以看作函数的集合.
+
+$$
+A \times B = \{f\;|\; dom(f) = 2, and\;f\;0 \in A\;and\;f\;1 \in B \}
+$$
+
+这种定义的调整可以拓展到n-tuple.
+
+进而可以拓展到无数元的tuple. 无限个集合做笛卡尔积.
+
+$$
+
+\prod_{i=m}^nS(i) = \prod_{i\in[m,n]} S(i) = \{f\;|\;dom(f)=[m,n], and\;\forall i\in [m,n]. f\;i\in S(i)\}
+
+$$
+
+$\sqcap\theta$中，$\theta$是一个函数，因变量是一个set.
+
+$$
+
+\sqcap\,\theta = \{f\;|\;dom(f) = dom(\theta), and\;\forall i \in dom(\theta).\;f\;i\in\theta\;i\}
+
+$$
+
+当$\theta = \lambda i.E$且E不随i改变时（E应是几个集合），$\sqcap \theta = E \times E \times E...$  E的数量等于$dom(\theta)$，所以$\sqcap \theta$中的每一项都是一个作用域为$dom(\theta)$、值域为$E$的函数.
+
+![example-01](./pics/0x03-01.png)
+
+$\sqcap \emptyset = \{\emptyset\}.$ $\emptyset$也是函数（函数就是一个特殊的关系，包含一个集合的pair），只不过这个集合不包含任何pair.
+
+If $\exists i\in dom(\theta).\; \theta\;i = \emptyset$, then $\sqcap\theta = \emptyset$. 当我们记住$\sqcap$是笛卡尔积的拓展，这一个Example是比较容易理解的（笛卡尔积连乘时，中间任何一个为空，结果为空集）。这就要求，$\theta$的输入必须都有意义。
+
+> 这个$\theta$的意义还不是很清晰：为什么要构造这样一种表示？
+
+Exponentiation: 当E与i无关，它就是$dom(\theta)$到E的所有函数！注意，T作为指数，含义是做T次“笛卡尔积”，每一次笛卡尔积引入一个作用域点. 或者解读为，将T中的每个点都映射到S中.
+
+![](./pics/0x03-02.png)
+
+$2^S$ 因而可以表示超集$\mathcal{P}(S)$.
+
+## Sums (or Disjoint Unions) 不交并
+
+就是加上集合的标号，然后合在一起。
+
+$A + B =\{(i,x)\;|\;i=0\;and\;x\in A,\; or \; i = 1 \; and \; x \in B\}$
+
+一样，可以被generalized 带 n个集合的不交并. 可以用在无限个集合上.
+
+此时$\theta\;i$的i成了集合的标号
+
+![](./pics/0x03-03.png)
+
+$\Sigma \empty = \empty.$
+
+If $\forall i \in dom(\theta).\;\theta\;i=\empty, then\; \Sigma\theta = \empty.$ 
+
+不交并和笛卡尔积的关系更简单：若S(x)与x无关，
+
+$$
+
+\sum_{x\in T}S = \Sigma\lambda x\in T.S\\
+= \{(x,y)\;|\;x\in T\;and\;y\in S\} \\
+= (T\times S)
+
+$$
