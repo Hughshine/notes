@@ -31,6 +31,48 @@ Reduction Strategy & Evalutation Stratygy
 
 > 课件上强调reduction与evaluation的区别，此处没有理解
 
+20.8.11记：Reduction 与 Evaluation的区别应该就是：reduction是一直reduce到normal form为止，normal form相当于原先函数的最简化，allow optimizations, 可能会遇到无限的场景，最后可能得到一个最简单的lambda abstraction（所谓的“函数”）, 可能只是一个变量（不再有“栈”）。Evaluation是到一个lambda abstraction($\lambda x.M$)就停下（感觉可以理解为，运行时最终还是在栈上...），only evaluate closed terms(no free variables) ，因为嵌套地进行evaluate的是“被固定的参数”。
 
+几个练习：Find lambda terms then represent each of the following functions.
+
+1. f(n) = iseven(). 但是无类型， = 也没有定义，似乎不对. 希望找到一个函数F, F(x) = y, F(y) = x. 事实证明，思维被iszero固化了. iszero $\lambda n\;x\;y.\;n\;F\;T$ 的形式，输入自然数后效果是将F应用m次，由于iszero太简单，所以直接在x,y bound的情况下，设计F就可以. 如果iseven也以这种形式设计，必然需要做等于判断，因为x是bound的. 但显然，我们只需要不断翻转true/false就可以. 很轻松就可以跳出这个思维框架.
+
+$$
+
+\lambda n\,x\,y.\, n \; (\lambda z. \;if\_then\_else\; (z = x)\; y\; x)\; x (不好)\\
+iseven := \lambda n.\;n\;(not)\;T
+$$
+
+2. $f(n) = (n+3)^2$, 只需要把add/mult写进去就好了，最多可以reduce，但会不够直观.
+
+$$
+
+\lambda n.\;mult\;(add\;n\;3)\;(add\;n\;3)
+
+$$
+
+3. $exp(n,m) = n^m$ 只需要将(mult n)重复m次嘛。
+
+$$
+
+\lambda n,m.\; m (mult\;n)\;\overline{1}.
+
+$$
+
+4. $pred(n) = n - 1$ reduction rule只允许我们将一个term替换为另一个term，不过term不能为空. 所以我们必须用全新的思路构造pred: 生成的思路. 我们从(0, 0)开始找，fst为前面的数，snd为当前的数，一旦当前的数等于n，我们返回fst. (当我们记不住某个英文字符的前一个是什么，就要重头背一遍...). 我们需要一个结构存储两个数，并且做n次转移.
+
+> [参考](http://gettingsharper.de/2012/08/30/lambda-calculus-subtraction-is-hard/)
+
+$$
+
+Pred := \lambda. (n\; Trans\;(MkPair\;\overline{0}\;\overline{0})) Fst\\
+Trans := \lambda p.\;MkPair\;(p\;Snd)\;(Succ(p\;Snd))\\
+MkPair := \lambda ab.\;\lambda s.\;(sab)\\
+Fst := \lambda ab. a\\
+Snd := \lambda ab. b
+
+$$
+
+基于此，我们可以定义减法。
 
 ## The Church-Rosser Theorem
