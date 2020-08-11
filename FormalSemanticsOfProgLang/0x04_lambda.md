@@ -54,7 +54,7 @@ $$
 3. $exp(n,m) = n^m$ 只需要将(mult n)重复m次嘛。
 
 $$
-
+ 
 \lambda n,m.\; m (mult\;n)\;\overline{1}.
 
 $$
@@ -74,5 +74,56 @@ Snd := \lambda ab. b
 $$
 
 基于此，我们可以定义减法。
+
+### fixpoint
+
+当我们将递归方程写成fixpoint equation形式时，我们就已经把约束全部融入这个等式$f = F\;f$之中了. 我们要求的解，就是F的fixpoint，且任何一个都可以. 也就是说，我们用任何一个combinator求解，也都可以.
+
+解方程时，完全绕过了fixpoint的真实表达式，就是在不断反复用F规约. 每次单独遇到fixpoint，都根据$\Theta F\twoheadrightarrow F(\Theta F)$替换.即，我们无法直接reduce fixpoint到底（因为没有底），我们只能一步一步解析输入参数、并用上述等式替换，直到到达递归终点（如果函数被正确定义了的话）.
+
+> $\Theta = AA\\A = (\lambda xy.y(xxy))$ .
+
+### 其他数据结构：Pair/Tuple/List/Tree
+
+#### Pairs
+
+Pairs: $<M, N>$ => $\lambda z. z M N.$ 有一个参数，是“选择子”.
+
+Left: $\lambda p. p(\lambda x y.x).$
+
+Right: $\lambda p. p(\lambda x y.y).$
+ 
+#### Tuples -- Extension of Pairs
+
+$\langle M_1, ...,M_n\rangle$ = $\lambda z. zM_1...M_n$.
+
+$\pi_i^n = \lambda p.p(\lambda x_1...x_n.x_i)$.  是Left/Right的拓展.
+
+#### List
+
+$nil = \lambda xy.y$
+
+$H::T = \lambda xy.xHT$.注意，这里的H/T不是参数，就是一个连接链表的语法糖.
+
+熟悉一下list的（递归）方程$addlist\; l=l(\lambda h\;t.add\;h(addlist\;t))(\overline{0})$. 它很像foldr...，l接受的第一个参数是如何accumulate H 与 T的解，l的第二个参数是到达nil了，我们的递归终点，此时返回值是什么.
+
+#### Trees
+
+$leaf(n) = \lambda xy.xn$  
+$node(L,R) = \lambda xy.yLR$
+
+这里的定义，内部节点没有value.
+
+熟悉一个函数：$addtree\;t=t(\lambda n.n)(\lambda l\;r.add(addtree\;l)(addtree\;r)).$ leaf和node都接受两个参数，但是，leaf只使用第一个，node只使用第二个.
+
+
+#### 练习
+
+> 都需要用一般的fixpoint处理方式简单处理一下
+
+1. $len\_of\_list\;l = l(\lambda ht.\;succ(len\_of\_list\;t))\;\overline{0}$
+2. $depth\_of\_tree \;t=t(\lambda n.\overline{0})(\lambda lr.succ\;(\;max\;(depth\_of\_tree\;l)\;(depth\_of\_tree\;r))$
+
+> 差两个，头脑迟钝，以后再想.（max a b，sort l）
 
 ## The Church-Rosser Theorem
