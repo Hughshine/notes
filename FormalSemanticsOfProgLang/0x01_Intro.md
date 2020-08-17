@@ -29,6 +29,20 @@ Machine-checkable: proof checking is as simple as type checking. [Through Curry-
 
 have a lasting influence, 获得了Software System Award
 
+编译指令
+
 ### Installation
 
 Coq 似乎很容易安装；还要装Proof General[A generic Emacs interface], Emacs
+
+vscoq应该是可以用的（windows platform, 添加好coq的环境变量即可）。
+
+```shell
+coqc -Q . LF xx.v  # `.` => Logical Folder
+```
+
+### Software Foundation
+
+Software Foundation 这本书似乎很新。里面提到：FP的pure使得并发、并行很方便；同时，它连接了logic and computer science. Proofs are programs.
+
+书中还提到，Logic在计算机领域扮演十分essential的角色。两者互相促进。
