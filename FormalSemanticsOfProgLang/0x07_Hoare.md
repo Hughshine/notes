@@ -44,4 +44,10 @@ Hoare Logic 如何使用于 Coq，还要看. SF 不能停呀.
 
 ***
 
-Complete WHT: 遇到While时，不变量最难想。不变量不仅描述了数据的属性，还要包含variant的不变的性质（不变量在非b的情况下也满足（也包含非b的情况），比如 `[x > 10] while x != 10 do ... [q]`, invariant 是包含[x>=10]的. 意味着已经说明了运行时以及终止时的variant的范围；这个意义在于，variant可能以略复杂的方式递减，比如 x-=2，我们的前提、进而是invariant，需要指出x is even.）. 即为了保证 variant -> * 非b，我们需要提供相关属性。
+Complete WHT: 遇到While时，不变量最难想。不变量不仅描述了数据的属性，还要包含variant的不变的性质（不变量在非b的情况下也满足（也包含非b的情况），比如 `[x > 10] while x != 10 do ... [q]`, invariant 是包含[x>=10]的. 意味着已经说明了运行时以及终止时的variant的范围；这个意义在于，variant可能以略复杂的方式递减，比如 x-=2，我们的前提、进而是invariant，需要指出x is even.）. 即为了保证 variant -> * 非b，我们需要提供相关谓词描述。
+
+Strength / Weaken 一个 assertion，并不是true的“情况”意味着强，而是状态的“精细化”、复杂化意味着强，即状态的补充。
+
+***
+
+关于 $[true]c[true]$: 对于每一个assertion，我们希望它们都是true. true可以理解为“无限制”.
