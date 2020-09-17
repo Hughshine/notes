@@ -767,6 +767,7 @@ Fixpoint eqb (n m : nat) : bool :=
             end
   end.
 
+
 (** Similarly, the [leb] function tests whether its first argument is
     less than or equal to its second argument, yielding a boolean. *)
 
@@ -795,6 +796,14 @@ Notation "x <=? y" := (leb x y) (at level 70) : nat_scope.
 
 Example test_leb3':             (4 <=? 2) = false.
 Proof. simpl. reflexivity.  Qed.
+
+Theorem eqb_natid: forall a, a =? a = true.
+Proof.
+  intros a.
+  induction a.
+  - reflexivity.
+  - simpl. rewrite IHa. reflexivity.
+Qed.
 
 (** **** Exercise: 1 star, standard (ltb)  
 
@@ -898,6 +907,8 @@ Proof.
 Theorem plus_1_l : forall n:nat, 1 + n = S n.
 Proof.
   intros n. simpl. reflexivity.  Qed.
+
+
 
 Theorem mult_0_l : forall n:nat, 0 * n = 0.
 Proof.

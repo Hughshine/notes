@@ -1,0 +1,149 @@
+
+% ===============================================
+% MATH 29: Discrete Mathematics           Fall 2018
+% hw_template.tex
+% ===============================================
+
+% -------------------------------------------------------------------------
+% You can ignore this preamble. Go on
+% down to the section that says "START HERE" 
+% -------------------------------------------------------------------------
+
+\documentclass{ctexart}
+\usepackage{xcolor}
+
+\usepackage[margin=1.5in]{geometry} % Please keep the margins at 1.5 so that there is space for grader comments.
+\usepackage{amsmath,amsthm,amssymb,hyperref}
+
+\newcommand{\R}{\mathbf{R}}  
+\newcommand{\Z}{\mathbf{Z}}
+\newcommand{\N}{\mathbf{N}}
+\newcommand{\Q}{\mathbf{Q}}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+% \newtheorem{theorem}{Theorem}[section]
+% \newtheorem{corollary}{Corollary}[theorem]
+% \newtheorem{lemma}[theorem]{Lemma}
+
+\newenvironment{theorem}[2][Theorem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{lemma}[2][Lemma]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{claim}[2][Claim]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{proposition}[2][Proposition]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{corollary}[2][Corollary]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+
+\newenvironment{solution}{\begin{proof}[Solution]}{\end{proof}}
+
+\begin{document}
+
+\large % please keep the text at this size for ease of reading.
+\linespread{1.5} % please keep 1.5 line spacing so that there is space for grader comments.
+
+% ------------------------------------------ %
+%                 START HERE             %
+% ------------------------------------------ %
+
+% {\Large Week 2 proofs % Replace with appropriate number -- keep this THE SAME even when you revise and resubmit.
+% \hfill  Math 29, Discrete Mathematics}
+
+\begin{center}
+% {\Large Author's Name} % Replace "Author's Name" with your name
+{\Large Hoare soundness proof}
+\end{center}
+\vspace{0.05in}
+
+% -----------------------------------------------------
+% The following two environments (claim, proof) are
+% where you will enter the statement and proof of your
+% first problem for this assignment.
+%
+% In the theorem environment, you can replace the word
+% "theorem" in the \begin and \end commands with
+% "theorem", "proposition", "lemma", etc., depending on
+% what you are proving. 
+% -----------------------------------------------------
+
+
+\begin{claim}{Soundness for partial correctness}
+if $\vdash\{p\}c\{q\}$, then $\models\{p\}c\{q\}$.  
+\end{claim}
+
+% \theoremstyle{definition}
+\begin{definition}{$\models\{p\}c\{q\}$}
+\newline
+$\models\{p\}c\{q\} \iff \forall \sigma,\sigma'.(\sigma\models p)\wedge((c,\sigma)\longrightarrow^*(skip, \sigma'))\Rightarrow(\sigma'\models q)$
+\end{definition}
+
+\begin{definition}{$\vdash\{p\}c\{q\}$}
+    \newline
+    There exists a proof or derivation for $\{p\}c\{q\}$.
+\end{definition}
+
+用自然语言描述，我们要证明满足p的所有状态$\sigma$，在执行语句c后（按照语义定义进行evaluate），或者不终止，或者终态满足$q$.
+
+首先我们希望描述对某单一初始状态$\sigma$，相对于语句c和终态q的“soundness”，也就是课件中定义的\textit{Safe($c,\sigma,q$)}. 这一步可以理解为设立一个中间目标替换$\models\{p\}c\{q\}$，去掉$\sigma$前的全称量词
+，以进行inductive的证明。如果对于某个p，所有符合它的状态都满足这种描述，那么就是符合语义的了。
+
+\begin{definition}{$Safe^n(c,\sigma,q$)}
+    \newline $Safe^0(c,\sigma,q)$ always holds;
+    \newline $Safe^{n+1}(c,\sigma,q)$ holds iff (a) c = skip and $\sigma \models q$; or (b) 
+    \color{red}{there exists $c'$ and $\sigma'$ such that $(c, \sigma)\longrightarrow(c', \sigma')$} and $Safe^n(c',\sigma',q)$.
+    \newline 
+    \color{black} We say $Safe(c,\sigma,q)$ iff $Safe^n(c,\sigma,q)$ holds for all n.
+    \newline 用自然语言描述：某一个状态$\sigma$对于某指令c和某谓词q是Safe的，当它存在某一条不终止的执行方式，或者一条终止的、且终态满足q的执行方式。（即允许歧义性）
+\end{definition}
+
+
+\begin{lemma}{1}
+$Safe(c,\sigma,q) \Rightarrow ((c,\sigma)\longrightarrow^*(skip,\sigma'))\Rightarrow(\sigma'\models q)$
+\end{lemma}
+
+
+\begin{proof}
+我们对Safe的定义是直接为Lemma1服务的，它的证明也应是obvious的. 
+Follow by lemma 1.1 and lemma 1.2. 但我认为lemma1.2不是trival的(要求没有二义性就好了).
+\end{proof}
+
+\begin{lemma}{1.1 Progress}
+    If $Safe(c,\sigma,q)$, then either c is skip, or there exists $c'$ and $\sigma'$ such that 
+    $(c, \sigma)\longrightarrow(c', \sigma')$. 
+\end{lemma}
+
+\begin{proof}
+    Trival.
+\end{proof}
+
+
+\begin{lemma}{1.2 Preservation} 
+    If $Safe(c,\sigma,q)$ and $(c,\sigma)\longrightarrow(c', \sigma')$, then 
+    $Safe(c', \sigma', q)$.
+\end{lemma}
+\begin{proof}
+    并不能看出这一步是trival的，因为它要求语义是没有二义性的。
+\end{proof}
+
+\begin{lemma}{2}
+    $\vdash\{p\}c\{q\} \Rightarrow \forall\sigma.(\sigma\models p)\Rightarrow Safe(c,\sigma,q)$
+\end{lemma}
+
+\begin{proof}
+    Proof by induction over the derivation of $\vdash\{p\}c\{q\}$.
+\end{proof}
+
+\begin{lemma}{3. Lead to Soundness}
+    $lemma1 \wedge lemma2 \Rightarrow\;\vdash\{p\}c\{q\} \Rightarrow ( \forall \sigma,\sigma'.((\sigma\models p)\wedge((c,\sigma)\longrightarrow^*(skip, \sigma')))\Rightarrow(\sigma'\models q))$
+\end{lemma}
+
+\begin{proof}
+    Trival.
+\end{proof}
+
+\end{document}
+

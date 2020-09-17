@@ -15,14 +15,15 @@ $\vdash\;\{p\}c\{q\}$ : There is a derivation of {p}c{q} following the rules.
 
 总之：$\vdash\;J$ means J can be proved. Can be Proved 意味着 有一个 derivation. 不论J是谓词(assertion)、Hoare Triple(specification).
 
-$\sigma\models p$ : p(is an assertion) holds (is true) in $\sigma$, or $\sigma$ satisfied p.
+$\sigma\models p$ : p(is an assertion) holds (is true) in $\sigma$, or $\sigma$ satisfied p. (p直接在$\sigma$下，根据assertions semantics完成计算（true or false）)
 
 $\models p$ : p is valid. forall $\sigma$, p holds in $\sigma$.
 
 $\models\;\{p\}c\{q\}$ : Represent the meaning of {p}c{q}. 即从任何满足p的状态$\sigma$开始，在执行了c并终止后，状态来到$\sigma'$，$\sigma'\models q$.
 
-> $\models \{p\}c\{q\} \iff \forall \sigma,\sigma'.(\sigma\models p)\wedge((c,\sigma)\longrightarrow^*(skip, \sigma'))\Rightarrow(\sigma'\models q)$ 
+> $\models \{p\}c\{q\} \iff \forall \sigma,\sigma'.(\sigma\models p)\wedge((c,\sigma)\longrightarrow^*(skip, \sigma'))\Rightarrow(\sigma'\models q)$  【相应语言的small step semantics 下，语言的Hoare Logic的定义】
  
+为了证明 $\vdash\{p\}c\{q\} \Rightarrow \models\{p\}c\{q\}$，
 
 ![](./pics/0x07-01.png)
 
@@ -51,3 +52,38 @@ Strength / Weaken 一个 assertion，并不是true的“情况”意味着强，
 ***
 
 关于 $[true]c[true]$: 对于每一个assertion，我们希望它们都是true. true可以理解为“无限制”.
+
+***
+
+Hoare Logic Soundness proof for partial correctness.
+
+Soundness: $\vdash\{p\}c\{q\} \Rightarrow \models\{p\}c\{q\}.$
+
+1. lemma1: 在p被满足的所有状态$\sigma$下，如果都满足$Safe(c,\sigma,q)$, 那么$\models\{p\}c\{q\}$.
+
+> $\models\{p\}c\{q\}$要求的合法初始状态是所有的满足p的状态（for all $\sigma$），证明中需要逐一考虑单一状态的合法性，即$Safe(c,\sigma,q)$. 
+
+> 那么$Safe(c,\sigma,q)$，在partial correctness的意义下，要表达：在某状态起执行c，或者不终止（子情况一），或者在有限步终止后，达到的终态$\sigma'$满足q（子情况二）. 两个子情况分别证明即可，都符合$\models\{p\}c\{q\}$的形式定义. 
+> 
+> $Safe(c,\sigma,q) \Rightarrow (((c,\sigma)\longrightarrow^*(skip,\sigma'))\Rightarrow(\sigma'\models q))$
+
+> 而Safe的定义，就是为了这个目的给出的。但是没看出怎么由Safe定义得到lemma1. 【思路应该是：Safe(skip)符合语义，或者将Safe(c)=>Safe(c').】
+
+2. lemma2: $\vdash\{p\}c\{q\} \Rightarrow \forall\sigma.(\sigma\models p)\Rightarrow Safe(c,\sigma,q)$
+
+lemma2: prove by induction over the derivation of $\;\vdash\{p\}c\{q\}$
+
+> 首先证明base case的soundness；再证明每个inference rule的soundness（假设前提holds）
+> 
+> 比如对于AS，需要证明substitution的良好性质... 这部分是略繁琐的，和语义细节紧密相关。
+
+
+
+
+我们将原证明拆成两个，需要证明拆分是对的：$lemma1 \wedge lemma2 \Rightarrow \models \{p\}c\{q\}$. 这个是比较好证明的。
+
+> lemma1: $Safe(c,\sigma,q) \Rightarrow ((c,\sigma)\longrightarrow^*(skip,\sigma'))\Rightarrow(\sigma'\models q)$
+
+> lemma2: $\vdash\{p\}c\{q\} \Rightarrow \forall\sigma.(\sigma\models p)\Rightarrow Safe(c,\sigma,q)$
+
+>  $lemma1 \wedge lemma2 \Rightarrow\;\vdash\{p\}c\{q\} \Rightarrow ( \forall \sigma,\sigma'.((\sigma\models p)\wedge((c,\sigma)\longrightarrow^*(skip, \sigma')))\Rightarrow(\sigma'\models q))$ 

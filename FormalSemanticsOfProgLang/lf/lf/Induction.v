@@ -842,16 +842,38 @@ Theorem swap_net2bin_S: forall n: nat,
 Proof.
   reflexivity.  Qed.
 
+Theorem plus_1_r : forall n:nat, n + 1 = S n.
+Proof.
+  intros n. simpl. rewrite plus_comm. reflexivity.  Qed.
+
 Theorem swap_bin2net_incr: forall b: bin, 
   bin_to_nat (incr b) = S (bin_to_nat b).
 Proof.
   intros b.
   induction b.
   - simpl. reflexivity.
-  - replace (incr (A b)) 
-  (* - rewrite IHb. *)
-  Admitted.
-
+  - replace (incr (A b)) with (B b).
+    * simpl.  
+      rewrite plus_comm. reflexivity.
+    * reflexivity.
+  - replace (incr (B b)) with (A (incr b)).
+    * simpl.   
+      rewrite plus_comm.
+      rewrite IHb.
+      simpl.
+      rewrite <- plus_assoc.
+      simpl.
+      rewrite <- plus_n_O.
+      replace (S (bin_to_nat b)) with (bin_to_nat b + 1). {
+        - rewrite plus_assoc.
+          reflexivity.
+      } {
+        - rewrite plus_1_r.
+          reflexivity.
+      }
+      (* - rewrite IHb. *)
+    * reflexivity.  
+  Qed.
 
 Theorem nat_bin_nat : forall n, bin_to_nat (nat_to_bin n) = n.
 Proof.
