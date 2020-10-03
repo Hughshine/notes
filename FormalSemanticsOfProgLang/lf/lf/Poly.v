@@ -783,16 +783,20 @@ Proof. reflexivity.  Qed.
    two sublists should be the same as their order in the original
    list. *)
 
+Import Coq.Program.Basics.
+(*Want to Use `compose`. compose is not curry.*)
+  
+                    
 Definition partition {X : Type}
                      (test : X -> bool)
                      (l : list X)
-                   : list X * list X
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+                   : list X * list X :=
+( filter test l, filter (compose negb test) l).
 
 Example test_partition1: partition oddb [1;2;3;4;5] = ([1;3;5], [2;4]).
-(* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
 Example test_partition2: partition (fun x => false) [5;9;0] = ([], [5;9;0]).
-(* FILL IN HERE *) Admitted.
+Proof. reflexivity.  Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -839,10 +843,26 @@ Proof. reflexivity.  Qed.
     Show that [map] and [rev] commute.  You may need to define an
     auxiliary lemma. *)
 
+Theorem map_individual: forall (X Y: Type) (f : X -> Y) (l : list X)(x : X),
+map f (l ++ [x]) = map f l ++ [f x].
+Proof.
+  intros X Y f l x.
+  induction l as [| e l' IHl'].
+  - simpl. reflexivity.
+  - simpl. rewrite IHl'. reflexivity.  Qed.
+(*对l做induction；不能对函数做induction；注意变量是否是free的。一般另起一个Theorem比较好。*)
 Theorem map_rev : forall (X Y : Type) (f : X -> Y) (l : list X),
   map f (rev l) = rev (map f l).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X Y f l.
+  simpl.
+  induction l as [| x l' Ihl].
+  - simpl. reflexivity. 
+  - simpl. rewrite <- Ihl.
+    remember (rev l') as l.
+    apply map_individual.
+    Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, recommended (flat_map)  
@@ -857,15 +877,21 @@ Proof.
       = [1; 2; 3; 5; 6; 7; 10; 11; 12].
 *)
 
+Fixpoint flatten {X: Type} (l: list (list X)) : (list X) := 
+  match l with
+    | nil => []
+    | a::l' => a ++ flatten l'
+    end.
+
 Fixpoint flat_map {X Y: Type} (f: X -> list Y) (l: list X)
-                   : (list Y)
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+                   : (list Y) :=
+flatten (map f l).
 
 Example test_flat_map1:
   flat_map (fun n => [n;n;n]) [1;5;4]
   = [1; 1; 1; 5; 5; 5; 4; 4; 4].
- (* FILL IN HERE *) Admitted.
-(** [] *)
+Proof. reflexivity.  Qed.
+  (** [] *)
 
 (** Lists are not the only inductive type for which [map] makes sense.
     Here is a [map] for the [option] type: *)
@@ -896,6 +922,8 @@ Definition option_map {X Y : Type} (f : X -> Y) (xo : option X)
     [fold].  This function is the inspiration for the "[reduce]"
     operation that lies at the heart of Google's map/reduce
     distributed programming framework. *)
+
+    (*foldl function*)
 
 Fixpoint fold {X Y: Type} (f: X->Y->Y) (l: list X) (b: Y)
                          : Y :=
@@ -942,7 +970,12 @@ Proof. reflexivity. Qed.
     situation where it would be useful for [X] and [Y] to be
     different? *)
 
-(* FILL IN HERE *)
+(* 
+
+Y is bool, X 是 任何其他类，可以判断链表是否符合某个简单属性。
+甚至Y是一个复杂类，可以携带更多的信息。
+
+*)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_fold_types_different : option (nat*string) := None.
