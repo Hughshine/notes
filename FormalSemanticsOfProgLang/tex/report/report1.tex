@@ -1,0 +1,1120 @@
+\documentclass[UTF8, 8pt, a4paper ]{ctexart}
+\usepackage[utf8]{inputenc}
+\usepackage[left = 15mm, right = 15mm, top = 20mm, bottom= 20mm]{geometry}
+
+\usepackage{ksafe-lin-proof}
+\newcommand{\absHistSet}[1]{\mathcal{S}\llbracket #1 \rrbracket}
+
+\usetikzlibrary{decorations.pathmorphing}
+\newcommand\xrsquigarrow[1]{%
+	\mathrel{%
+		\begin{tikzpicture}[%
+			baseline={(current bounding box.south)}
+			]
+			\node[%
+			,inner sep=.44ex
+			,align=center
+			] (tmp) {$\scriptstyle #1$};
+			\path[%
+			,draw,<-
+			,decorate,decoration={%
+				,zigzag
+				,amplitude=0.7pt
+				,segment length=1.2mm,pre length=3.5pt
+			}
+			]
+			(tmp.south east) -- (tmp.south west);
+			\path[draw] ($ (tmp.south west)+(0,-0.7mm) $)--($ (tmp.south west)+(0,0.7mm) $);
+			
+		\end{tikzpicture}
+	}
+}
+
+\newcommand{\circline}{
+	\mathrel{%
+		\raisebox{0.15mm}{
+		\begin{tikzpicture}
+%			[%
+%			baseline={(current bounding box.south)}
+%			]
+			\draw[line width=0.35pt] (0,0) circle (2pt);
+			\draw[line width=0.35pt] (-1.2mm, 0)--(1.2mm, 0);
+		\end{tikzpicture}\ }
+	}
+}
+
+%\newcommand{\clientSet}{\mathcal{C}}
+%\newcommand{\replicaSet}{\mathcal{R}}
+%\newcommand{\faultyClients}{\mathfrak{C}}
+%\newcommand{\faultyReplica}{\mathfrak{R}}
+
+\newcommand{\clientSet}{\mathcal{C}_{\textit{ok}}}
+\newcommand{\replicaSet}{\mathcal{R}_{\textit{ok}}}
+\newcommand{\faultyClients}{\mathcal{C}_{\textit{bad}}}
+\newcommand{\faultyReplica}{\mathcal{R}_{\textit{bad}}}
+
+\newcommand{\inbuf}{\textit{Inbuf}\hspace{0.7mm}}
+\newcommand{\phymap}[1]{\ulcorner #1 \urcorner}
+\newcommand{\addrSet}{\mathcal{A}}
+
+\begin{document}
+	\fontsize{8pt}{8pt}
+	\setlength{\baselineskip}{14pt}
+	
+	
+%	$ \circ $ $ \circline $
+	
+\begin{small}
+		
+%	$ (W,S) \longmcltstep{\ H\ }{t,P} (W,S) $
+	
+%	$ (W,S) \longmcltstep{\ aslhdajshdkajshdj\ }{t,P} (W,S) $
+	
+%	$ (W,S) \longmcltstep{\ \ \ }{e} (W,S) $
+
+
+
+
+	\textbf{第一章的模型是在之前consensus模型的基础上加入了}
+	\begin{itemize}
+		\item 网络故障，消息丢失和复制：Msg-Lose和Msg-Dup语义
+		\item 线程故障
+		\begin{itemize}
+			\item 良性错误crash:\\
+			在每个线程的local state中指定read-only variable "\textit{faulty}" 用于记录该线程是否有故障，指定"\textit{role}"用于记录该线程是client还是replica。定义操作语义Glb-Thd-Crash，在程序执行的任何时刻，faulty为true的线程都可以跳转到skip。%若是faulty client，不仅要跳转，还要产生stop事件
+			
+			\item 拜占庭故障
+			\begin{itemize}
+				\item 表达arbitrary program. 定义基于$ \clientSet, \faultyClients, \replicaSet, \faultyReplica $（4个互不相交的集合，分别是correct client集，faulty client集，correct replica集，faulty replica集）的初始程序W
+				\begin{itemize}
+					\item 不限制在$ \faultyClients, \faultyReplica $集合中的线程的初始程序，并将其初始stack设为$ (\emptyset, \wildcard, \textbf{skip}) $(这样做是为了合乎操作语义，使他们可以执行底层send, recv原语)。
+					\item 对应地，correct replica初始stack为$ (\emptyset, \wildcard, \textbf{skip}) $，且其必须执行协议指定的$ C_{serv} $程序. correct client的初始stack为空，它不能执行send,recv，只能通过protocol提供的函数接口访问shared variable
+				\end{itemize}
+				
+				\item 建模faulty线程的"扮演"行为，根据"扮演"的定义，需要
+				\begin{itemize}
+					\item  建模“数字签名”：定义消息$ m\ (\textit{Msg}) $就是经过私钥签名后的消息内容
+
+					\item  建模线程的"数字签名"：在每个线程的local state中指定read-only thread id set variable "\textit{Keys}"，用于记录该线程拥有哪些线程的私钥。在初始configuration中，faulty client都拥有所有faulty client的私钥，faulty replica拥有所有faulty replica的私钥，correct thread只有自己的私钥。
+					
+					\item  “数字签名”在消息发送和接收时扮演的角色：将send语句定义为send(tid, Dest, mc)，语义是使用线程tid的签名，将内容为mc的消息发到Dest集合指定的节点中。并要求输入的tid必须属于Keys集合。使得faulty client和faulty replica可以通过输入不同tid扮演其他faulty线程\\
+					此外，前面做consensus的文档中，线程id和收发消息的地址混在一起。这里为建模"扮演"，需要区分开来（否则接收伪造签名的一方会把reply消息发送到被伪造的线程上去）。由此定义物理地址以与线程id区分。
+				\end{itemize}
+			\end{itemize}
+		\end{itemize}
+	\end{itemize}
+
+	\textbf{第二章为了表达byznearizability}
+	\begin{itemize}
+		\item abstract machine 建模 arbitrary program. 在abstract machine中，所有client都必须通过object spec访问虚拟object, 故好client和坏client都不会对初始做限制。(除为了生成stop事件，坏client的初始程序的最后一句需要是\textbf{stop}外)
+			
+		\item abstract machine 建模 “扮演”。\\
+			类似地，初始时给每个client指定的local read-only variable "\textit{faulty}"和"\textit{Keys}", 并将\textbf{fexec}语句修改为$ \textbf{fexec}(f, val, tid) $，该语句的语义是：以$ {tid} $线程的名义执行函数$ f $, 参数是$ val $. 任何client执行语句$ x \assign f(val) $, 都将跳到$ \textbf{fexec}(f, val, tid) $语句，$ tid $参数是非确定的$ \textit{Keys} $中的一个值。由于好client的$ \textit{Keys} $集合中只有自己，它只能以自己的名义执行，而坏client可以以人任何坏client的名义执行。
+		
+		\item abstract machine 建模 "余波"\\
+			"余波"建模要求bad client在stop后仍可以产生有限数量的inv， res事件对。定义语句$ \textbf{aftermath}(H) $, 任何bad clients在产生stop事件（执行了stop语句或crash）后都跳转到该语句，$ H $是非确定的、有限长的、事件对结构的history. $ \textbf{aftermath}(H) $每执行一次，消耗$ H $开头的一个合法事件对，直至$ H $的开头两个事件对不合法或$ H $的长度小于2(将block)
+		
+		\item byznearizability中讨论的history可以是无限长的，需要对应co-inductive构造来表达\\
+%		\red{一个问题是我在表达byznearizability时，尝试求infinite history的completion，我觉得这种做法可能是错的}
+	\end{itemize}
+	
+	
+	\pagebreak
+
+	\section{Basic Technical Setting for Byzantine Objects}
+	
+	
+	
+	\newcommand{\auxFuncs}{\mathcal{F}_\textsf{aux}}
+	
+	\subsection{Syntax of the Programming Language}
+	
+		\begin{longtable}{rcl}
+			\hline
+				$ val $ & $ \in $ & $ \textit{Val} $ \\
+				
+				$ x, y, v...  $ & $ \in $ & \textit{PVar} \\ 
+				
+				$ (\!\textit{FuncName})\ f  $ & $ \in $ & $ \textit{String} $\\
+				
+%				$ (\!\textit{FuncSet})\ \mathcal{F} $ & $ \in $ & $ \mathscr{P}(\textit{FuncName}) $ \\
+				
+				$ (\!\textit{MsgTag})\ \textit{tag} $ & $ \in $ & $ \textit{String} $\\
+				
+				$ (\!\textit{MsgCont})\ mc $ & ::= & $ [\textit{tag}, val, ..., val] $ \\
+				
+				$ (\!\textit{ThreadID}) \ t, i, j $ & $ \in $ & $ \textit{Nat}^{+} $ \\
+				
+				$ (\!\textit{PhyAddr})\ pa $ & $ \in $ & $ \textit{Nat}^{+} $ \\
+				
+				$ (\!\textit{ThreadIDSet})\ \mathcal{C}, \mathcal{R} $ & $ ::= $ & $ \{ t_1, ..., t_n \} $ \\
+				
+				$ (\!\textit{AddrSet})\ \addrSet $ & $ ::= $ & $ \{ pa_1, ..., pa_n \} $ \\
+				\hline
+				\multicolumn{3}{c}{\textbf{Figure 1.} Basic Types} \\
+		\end{longtable}
+				
+				
+		\begin{longtable}{rcl}
+			\hline
+				$ (\!\textit{Expr})\ E $ & $ ::= $ & $ v \mid val \mid ... $ \\
+				
+				
+				
+				$ (\!\textit{Stmt})\ C $ & ::= & $ \textbf{skip} \mid \textbf{stop} \mid x \assign E \mid \textbf{send}(E_{\textit{tid}}, E_{\textit{Dest}}, E_{mc})  $ \\
+				
+				&& $ \mid v_m \assign \textbf{recv}()  \mid x \assign f(E) \mid  \textbf{return } E \mid \textbf{noret}  $ \\
+				&& $\mid \textbf{if}(E)\ C \textbf{ else } C  \mid C;C \mid \textbf{while}(E) C  $ \\
+				$ (\!\textit{Library})\ L $ & ::= & $ \{ f_1 \rightsquigarrow (x_1, C_1), ..., f_n \rightsquigarrow (x_n, C_n) \} $\\
+
+				$ (\!\textit{M-\!Volcab})\ \mathcal{M} $ & $ \in $ & $ \mathscr{P}(\!\textit{MsgCont}) $ \\
+
+				$ (\!\textit{Protocol})\ P $ & ::= & $ (\mathcal{M}, C_{\textit{serv}}, L) $ \\
+				
+				$ (\!\textit{Prog})\  {W} $ & ::= & $ \textbf{let } P \textbf{ in } C \parallel ... \parallel C  $ \\
+				
+				\hline
+				
+				\multicolumn{3}{c}{\textbf{Figure 2.} Syntax of the Programming Language} \\
+			
+		\end{longtable}
+	
+	
+	Here are some notes about figure 1 and 2:
+	\begin{itemize}
+		\item In this document, $ \textit{Nat} $ is the set of natural numbers, i.e. \{ 0,1,2,....\}; $ \textit{Nat}^{+} $ is the set of all positive natural numbers, i.e. $ \textit{Nat} \setminus \{0\} $; $ \textit{Int} $ is the set of all integers; $ [n] $ is an abbriviation for some subset of $ \textit{Nat}^{+} $, e.g. $ [n] = \{1,2,..., n\} $
+
+
+		\item 对协议$ P $, $ \mathcal{M} $是协议的message volcabulary, $ L $是供client调用的库函数集，$ C_{\textit{serv}} $是协议提供的服务代码，是non-faulty replica型thread的初始程序
+		
+		\item 引入节点的物理地址是为了以建模"运行在物理地址为$ x $的节点可以发送线程$ y $签名的消息"这件事。为了简化，本文档对world configuration初始化时定义运行在节点上的线程id以及对应节点的物理地址是同一个值，即1号节点运行1号线程，2号节点运行2号线程......
+		
+		二者进行区分主要体现在\textbf{send}, \textbf{recv}语句上。发送消息时，线程将物理地址作为目的地，不关心运行在该物理地址上的线程id是什么。但在根据消息做判断时(例如想知道将目前已收到的的消息是否来自一个quorum)只关心线程id，不关心该线程运行在那个节点上。物理地址仅起到一个标记消息源的作用，方便对方根据地址进行reply。
+		
+		\item \textbf{send}的语义由标准单播改为标准多播(multicast, 便于表达atomically broadcast). 其中$ E_\textit{tid} $是线程id表达式，$ E_\textit{Dest} $是集合表达式, 计算后应为目的节点物理地址的集合。$ \textbf{send} $语句是说：将用$ tid $私钥签名的消息发送到由$ \textit{Dest} $物理地址集合标记的节点上去，消息内容为$ mc $
+		\item $ \textbf{recv} $语句是说：接收一个物理地址集\ 中包含自己所在节点地址的消息，并将源物理地址$ pa $，声称发送此消息的线程的id $ tid $，消息的内容$ mc $ 3者存储到$ v_m $变量中
+		
+		\item \textbf{stop}语句将出现在每个初始faulty client程序的末尾，用于在faulty client终止前执行时产生$ (t, \texttt{stop}) $事件(详见Initial World Configuration定义)
+		
+	\begin{comment}
+		\item 下面定义一些全局函数
+			\begin{itemize}
+				\item 物理地址映射函数$ \ulcorner t \urcorner $，其中$ t $是线程id，$ \ulcorner t \urcorner $是运行线程$ t $的节点的物理地址，不同线程运行在不同节点上，且不可通过物理地址推算线程id
+				\begin{kfomula}{0.2}
+					\forall t_1, t_2.\ \ulcorner t_1 \urcorner = \ulcorner t_2 \urcorner \implies t_1 = t_2\\
+					\red{\forall pa.\ \ulcorner pa \urcorner^{-1} \textit{ undefined }}
+				\end{kfomula}
+			
+%				\item $ \msign{m}{t} $返回消息$ m $由线程$ t $的私钥加密的结果
+				
+				\item 理想message digest 函数$ D: \textit{Msg} \rightharpoonup \textit{Nat} $满足无冲撞性和不可求逆性
+					\begin{kfomula}{0.1}
+						\forall m, m'.\ D(m) = D(m') \implies m = m' \\
+						\red{\forall d.\ D^{-1}(d) \textit{ undefined }}
+					\end{kfomula}
+					
+%					$  $
+			\end{itemize}
+		
+			\end{comment}
+		
+		
+%		下面是文档中出现的special modifiable local variable
+%		\begin{itemize}
+%			\item set variable $ \inbuf $ : 是消息接收buffer，初始时就定义在每个线程的$ \sigma_o $中，\textbf{recv}操作将直接把接收的消息添加到此集合中
+			
+			
+			
+%		\end{itemize}
+		
+	\end{itemize}
+	
+	
+	\subsection{States and Event Trace}
+	
+	
+		\begin{longtable}{rcl}
+			\hline			
+			
+			$ (\!\textit{Mem})\ \sigma $ & $ \in $ & $ \textit{PVar} \rightharpoonup \textit{Val} $\\
+			
+			
+			$ (\!\textit{CallStk})\ \kappa $ & ::= & $ \circ \mid  (\sigma_l, x, C)$\\
+			
+			$ (\!\textit{LcState}) \ \delta $ & ::= & $ (\sigma_c, \sigma_o, \kappa)  $\\
+			
+			$ (\!\textit{CltStates})\ \varDelta  $ & ::= & $ \{ t_1 \rightsquigarrow {\delta}_1 , ..., t_n \rightsquigarrow {\delta}_n \} $\\
+			
+			$ (\!\textit{Msg})\ m $ & $ = $ & $ \msign{ pa, mc }{t}  $\\
+			
+			$ (\!\textit{MsgPool})\ {M} $ & $ \in $ & $ \mathscr{P}(\! \textit{AddrSet}  \times \!\textit{AddrSet}\times \! \textit{Msg}) $\\
+			
+			$ (\!\textit{PState})\ {S} $ & ::= & $ (\varDelta, {M}) $\\			
+			\hline
+			
+			\multicolumn{3}{c}{\textbf{Figure 3.} States} 
+		\end{longtable}
+
+
+		there are three different kinds of event:
+		\begin{kfomula}{0.2}
+			(\!\textit{Evt})\ e \ \ ::=\ \  (t, f, val) \mid (t, \texttt{ok}, val) \mid (t, \texttt{stop})
+		\end{kfomula} 
+	
+		note that our history can be infinite, thus 
+		\begin{kfomula}{0.1}
+			(\!\textit{History})\ H \ \ ::=\  \ \epsilon \mid e :: H \qquad\qquad  (\text{co-inductive})
+		\end{kfomula} 
+	
+	\kspace
+	
+	Here are some notes for {figure 3}:
+	\begin{itemize}
+		\item {Message Pool} $ M $ is the finite set of tuple $ (\addrSet_\textit{ori}, \addrSet_\textit{cur}, m) $. 
+		\begin{itemize}
+			\item $ \addrSet_\textit{ori} $是目标节点物理地址的id的集合，由\textbf{send}和\textbf{recv}的语义可知，$ \addrSet_\textit{ori} $一旦在\textbf{send}时确定就不会再改动，目的是保留该消息的目的信息，可用于书写msg-duplication行为的语义。
+			
+			\item $ \addrSet_{\textit{cur}} $中保存了当前尚未接收$ mc $的线程id的集合。系统通过将目标线程的id $ t $移出$ \addrSet_{\textit{cur}} $标记$ t $已接收该消息(见\textbf{recv}语义)。最终该元组可能变为$ (\addrSet, \emptyset, mc) $, 这种$ \addrSet_{cur} = \emptyset $的消息不会被移出$ M $, 使得在消息发出后的任何时候都可被复制，由此可模拟replay attack. 
+			
+			\item \red{$ m = \msign{pa, mc}{i}$意为\ 将消息源物理地址$ pa $和消息体$ mc $ 用线程$ i $的私钥进行加密后的东西, 我不是很清楚能不能这样表达}
+		\end{itemize}
+		
+		
+		
+		\item 下面是文档中出现的special read only local variable
+		\begin{itemize}
+			\item positive nat variable $ \textit{tid} $: 线程自己的id
+						
+			\item bool variable $ \textit{faulty} $: 标记自己是不是faulty的
+			
+			\item set variable $ R_{tid} $记录系统中所有replica的线程id
+			
+			\item set variable $ R_{pa} $记录系统中所有replica的物理地址
+			
+			
+			\item $ \textit{role} $ 记录线程的角色信息
+			
+			
+			\item set variable $ \textit{Keys} $ : 是该线程持有的用于持有的私钥的集合，correct thread只持有自己的私钥，faulty thread持有所有其他faulty thread的私钥
+		\end{itemize}
+		
+		
+	\end{itemize}
+
+	
+
+	
+	
+	
+	\kspace
+	
+	
+	\begin{definition}[\textbf{Well-formed World Configuration}]\ world configuration $ (W, (\varDelta, M)) $ is well-formed \textit{w.r.t.} protocol $ P $, correct client set $ \clientSet $, faulty client set $ \faultyClients $, correct replica set $ \replicaSet $ and faulty replica set $ \faultyReplica $ iff
+		
+		
+		$ \textsf{well-formed}_{P, \clientSet, \faultyClients, \replicaSet, \faultyReplica}(W, (\varDelta, M)) \ \triangleq \  $
+		
+		
+		\qquad $ \begin{array}{ll}
+			\exists n.\ \exists i_1, ..., i_n.\ \exists C_{i_1}, ..., C_{i_n}.\ W = \letin{P}{C_{i_1} \parallel ... \parallel C_{i_n}}\\
+			
+			\land\ (\clientSet \uplus \faultyClients \uplus \replicaSet \uplus \faultyReplica = \{ i_1, ..., i_n \}) \land (|\replicaSet| \geq 3) \land (|\replicaSet| \geq 2\cdot|\faultyReplica| +1 ) \\
+			
+			
+			\land\  (\forall t \in \clientSet \uplus \faultyClients \uplus \replicaSet \uplus \faultyReplica.\ (\varDelta(t).\sigma_o)(\textit{tid}) = t \land (\varDelta(t).\sigma_o)(\textit{R}_{pa}) = \replicaSet \uplus \faultyReplica \land (\varDelta(t).\sigma_o)(\textit{R}_{tid}) = \replicaSet \uplus \faultyReplica) \\
+			
+%			\land (\inbuf \in \dom{\varDelta(t).\sigma_o})\\
+			
+			\land\  (\forall t \in \clientSet \uplus \replicaSet.\ (\varDelta(t).\sigma_o)(\textit{faulty}) = \textbf{false} ) \land (\forall t \in \faultyClients \uplus \faultyReplica.\ (\varDelta(t).\sigma_o)(\textit{faulty}) = \textbf{true} )\\
+			
+			\land\  (\forall t \in \clientSet \uplus \faultyClients.\ (\varDelta(t).\sigma_o)(\textit{role}) = \texttt{client}) \land (\forall t \in \replicaSet \uplus \faultyReplica.\ (\varDelta(t).\sigma_o)(\textit{role}) = \texttt{replica} )\\
+			
+			\land\ (\forall t \in \clientSet \uplus \replicaSet.\ \varDelta(t).\sigma_o(\textit{Keys}) =  \{ t \})  \\
+			
+			\land\ (\forall t \in \faultyClients .\ \varDelta(t).\sigma_o(\textit{Keys}) =  \faultyClients) \land (\forall t \in \faultyReplica.\ \varDelta(t).\sigma_o(\textit{Keys}) =  \faultyReplica) \\
+			
+%			\land\ (\forall t \in \faultyClients \uplus \faultyReplica.\ (\varDelta(t).\sigma_o)(F_r) = \faultyReplica \land (\varDelta(t).\sigma_o)(F_c) = \faultyClients)\\
+			
+		\end{array} $
+	\end{definition}
+
+	\textsf{well-formed}意味着
+	\begin{itemize}
+		\item $ \clientSet, \faultyClients, \replicaSet, \faultyReplica $互无交集，且correcr replica的数量不小于$ 3 $且不小于faulty-replica的两倍加1(quorum). 这个来自协议的假设是较为general的, 我看过的byzantine-tolerant protocol对replica的数量都有这个要求。
+		
+%		且replica线程的数量必须为$ 3k+1 $，其中$ k $是某个正整数，故障的replica线程的个数不超过$ k $. 实际上replica的线程数目可以任意，只要大于故障线程的3倍即可。这里$ 3k+1 $应该是取最弱的条件，只要能证明$ 3k+1 $下byznearizability成立，增加correct replica线程的数目byznearizability仍然能成立
+		
+		\item 每个线程知道自己的线程id和物理地址
+		
+		\item 每个线程知道系统中那些线程是replica即(replica的线程id), 以及他们的物理地址。
+		
+		\item 每个线程知道自己有无故障, 知道自己是client还是replica
+		
+		\item 故障replica有系统中所有故障replica的private key\\
+			故障client有系统中所有故障client的private key \\
+			(用于faulty threads之间的协作, 建模规定faulty replica只能使用faulty replica的签名，faulty client只能使用faulty client的签名。现实场景中可能存在faulty client"扮演"faulty replica的情况，这样做只是相当于被扮演的faulty replica变多线程了，提高其效率，并不会打破faulty replica数目限制。也可能存在faulty replica扮演faulty client的情况，对这种我们可以通过在world configuration中新增一个faulty client模拟之)
+		
+	\end{itemize}
+
+	
+	
+	
+	\subsection{Operational Semantics}
+	
+	
+	
+	
+	\begin{comment}
+	$ \textsf{stop-faultyClt}(\sigma, t) \ \triangleq\ \left\{
+	\begin{array}{ll}
+		(t, \texttt{stop}) & \sigma(\textit{faulty}) = \textbf{true} \land  \sigma_o(\textit{role}) = \texttt{client}\\
+		\tau & \textit{o.w.} \\
+	\end{array}
+	\right. $
+	\end{comment}
+	
+	\subsubsection{Global Transition Rules}
+	
+	\vspace{0.2cm}
+	
+	\begin{center}
+		$
+		\inferrule[Glb-Int]
+		{ (C_t, \varDelta(t), M) \longcltstep{\ e\ }{t,P} (C_t', \delta', M') }
+		{ (\textbf{let } P \textbf{ in } C_1 \parallel ... \ C_t\ ... \parallel C_n,\ (\varDelta, M) ) \longworldstep{\ e\ } (\textbf{let } P \textbf{ in } C_1 \parallel ...\ C_t' \ ... \parallel C_n,\ (\varDelta\{t \rightsquigarrow \delta'\}, M')) }
+		$
+		
+		\kspace
+		
+		$
+		\inferrule[Glb-Met-Misbehave]
+		{ M \xrsquigarrow{ \ \ \ } M' }
+		{ (\textbf{let } P \textbf{ in } C_1 \parallel ... \parallel C_n,\ (\varDelta, M) ) \longworldstep{\ \ \ } (\textbf{let } P \textbf{ in } C_1 \parallel ... \parallel C_n,\ (\varDelta, M')) }
+		$
+		
+		\kspace
+		
+		$
+		\inferrule[Glb-Thd-Crash]
+		{ C_t \neq \textbf{skip} \\ \varDelta(t).\sigma_o(\textit{faulty}) = \textbf{true} }
+		{ (\textbf{let } P \textbf{ in } C_1 \parallel ... \ C_t\ ... \parallel C_n,\ (\varDelta, M) ) \longworldstep{ \ \ \ } (\textbf{let } P \textbf{ in } C_1 \parallel ...\ \textbf{stop} \ ... \parallel C_n,\ (\varDelta, M)) }
+		$
+			
+	\end{center}
+
+	
+
+%	\begin{itemize}
+%		\item crash行为定义成修改程序为skip
+%		\item 如果t是faulty client, 则产生事件$ (t, \texttt{stop}) $, 否则silent. 因为在描述byznearizability时只需要faulty client的stop标记
+%	\end{itemize}
+		
+	\subsubsection{Network Misbehave Rules}
+	
+	\vspace{0.2cm}
+	
+	\begin{center}
+		$ \inferrule[Msg-Lose]
+		{ (\addrSet_\textit{ori}, \addrSet_\textit{cur}, m) \in M \\ pa \in \addrSet_\textit{cur} }
+		{M \xrsquigarrow{\ \ \ }  (M \setminus (\addrSet_\textit{ori}, \addrSet_\textit{cur}, m)) \cup (\addrSet_\textit{ori}, \addrSet_\textit{cur} \setminus \{ pa \}, m)}
+		$
+		\qquad		
+		$ \inferrule[Msg-Dup]
+		{ (\addrSet_\textit{ori}, \addrSet_\textit{cur}, m) \in M \\ pa \in \addrSet_\textit{ori}   }
+		{M \xrsquigarrow{\ \ \ }   (M \setminus (\addrSet_\textit{ori},\addrSet_\textit{cur}, m)) \cup (\addrSet_\textit{ori}, \addrSet_\textit{cur}\cup\{ pa \}, m) }
+		$
+	\end{center}
+	
+	
+	
+%	从Dup规则可以看到，mc可能原不打算发给$ t $，也可以凭空产生发送给t。这种行为可由网络故障引起。
+	
+	\subsubsection{Thread Transition Rules}
+	\noindent \textbf{Thread transition inside method call:}
+	
+	\vspace{0.2cm}
+	
+	\begin{center}
+		$ 
+		\inferrule[Ret]
+		{	\llbracket E \rrbracket_{ \sigma_o \uplus \sigma_l} = {val} }
+		{ (\textbf{E}[\textbf{return }E], (\sigma_c, \sigma_o, (\sigma_l, x, C)), M ) \longcltstep{(t, \texttt{ok}, val)}{t, P} (C, (\sigma_c\{ x \rightsquigarrow \textit{val}\}, \sigma_o, \circ),  M ) }
+		$
+%		
+
+		\kspace
+		
+		$
+		\inferrule[Assn]
+		{ \sigma = \sigma_o \uplus \sigma_l \\ \llbracket E \rrbracket_{ \sigma } = val \\ \sigma_o' \uplus \sigma_l' = \sigma\{ x \rightsquigarrow val \} \\ \textsf{dom}(\sigma_l) = \textsf{dom}(\sigma_l') }
+		{ (\textbf{E}[x \assign E], (\sigma_c, \sigma_o, (\sigma_l, x, C)),  M) {\longcltstep{ \ \ \  }{t, P}\ (\textbf{E}[\textbf{skip}], (\sigma_c, \sigma_o', (\sigma_l', x, C)),  M  ) }}
+		$
+		
+		
+		\kspace
+		
+		$ \inferrule[Stop-Clt]
+		{ \sigma_o(\textit{faulty}) = \textbf{true}  \\ \sigma_o(\textit{role}) = \texttt{client} }
+		{(\textbf{E}[\textbf{stop}], (\sigma_c, \sigma_o, \kappa), M) \longcltstep{(t, \texttt{stop}) }{t,P} (\textbf{skip}, (\sigma_c, \sigma_o, \kappa), M) } 
+		$
+		\ 
+		$ \inferrule[Stop-Rpc]
+		{ \sigma_o(\textit{faulty}) = \textbf{true}  \\ \sigma_o(\textit{role}) = \texttt{replica} }
+		{(\textbf{E}[\textbf{stop}], (\sigma_c, \sigma_o, \kappa), M) \longcltstep{\ \ \ }{t,P} (\textbf{skip}, (\sigma_c, \sigma_o, \kappa), M) } 
+		$
+		
+		
+		\begin{comment}
+		
+		\kspace
+		
+		$ \inferrule[Send]
+		{ \sigma = \sigma_o \uplus \sigma_l \\   to = \eevalu{E_{to}}{\sigma} \\ mc = \eevalu{E_{mc}}{\sigma} \\ mc \in P.\mathcal{M} \\  }
+		%
+		{(\textbf{E}[\textbf{send}(E_{to}, E_{mc})], (\sigma_c, \sigma_o, (\sigma_l, x, C)),  M) \longcltstep{ \ \ \ }{t, P} (\textbf{E}[\textbf{skip}], (\sigma_c, \sigma_o, (\sigma_l, x, C)),  M \uplus \{ (t, to, \textbf{false}, mc) \} ) } $
+		\end{comment}
+		\kspace
+		
+		
+		$ \inferrule[Send]
+		{ \sigma = \sigma_o \uplus \sigma_l \\ \textit{tid} = \eevalu{E_\textit{tid}}{\sigma} \\ \textit{tid} \in \sigma_o(\textit{Keys}) \\
+		%
+		\mathcal{A} = \eevalu{E_{\textit{Dest}}}{\sigma} \\ mc = \eevalu{E_{mc}}{\sigma} \\ mc \in P.\mathcal{M}  }
+		%
+		{(\textbf{E}[\textbf{send}(E_\textit{tid}, E_{\textit{Dest}}, E_{mc})], (\sigma_c, \sigma_o, (\sigma_l, x, C)),  M) \longcltstep{ \ \ \ }{t, P} (\textbf{E}[\textbf{skip}], (\sigma_c, \sigma_o, (\sigma_l, x, C)),  M \cup \{ (\mathcal{A}, \addrSet, \msign{ t, mc}{\textit{tid}}) \} ) } $
+		
+		
+		\kspace
+		
+		
+		$ \inferrule[Recv]
+		{
+			\sigma = \sigma_l \uplus \sigma_o  \\  \\ (\addrSet_\textit{ori}, \addrSet_\textit{cur}, m) \in M \\ m = \msign{pa, mc}{\textit{tid}} \\\\
+			t \in \addrSet_\textit{cur} \\ \sigma_o'\uplus \sigma_l' = \sigma\{ v_m \rightsquigarrow (pa, \textit{tid}, mc) \} \\ \dom{\sigma_l} = \dom{\sigma_l'}\\\\
+			M' = (M \setminus \{ (\addrSet_\textit{ori}, \addrSet_\textit{cur}, m) \}) \cup \{ (\addrSet_\textit{ori}, \addrSet_\textit{cur} \setminus \{t\}, m) \}
+		}
+		{ (\textbf{E}[v_m \assign \textbf{recv}()], (\sigma_c, \sigma_o, (\sigma_l, x, C)), M) \longcltstep{ \ \ \ }{t, P} (\textbf{E}[\textbf{skip}], (\sigma_c, \sigma_o', (\sigma_l', x, C)), M') } $
+		
+		\kspace
+		
+		$ \inferrule[WhileCont]
+		{ \llbracket E \rrbracket_{\sigma_o \uplus \sigma_l} = \textbf{true} }
+		{(\textbf{E}[\textbf{while}(E)C], (\sigma_c, \sigma_o, (\sigma_l, x, C')), M) \longcltstep{\ \ \ }{t,P} (\textbf{E}[C;\textbf{while}(E)C], (\sigma_c, \sigma_o, (\sigma_l, x, C')), M) }
+		$
+		
+		\kspace
+		
+		$ \inferrule[WhileEnd]
+		{ \llbracket E \rrbracket_{\sigma_o \uplus \sigma_l} = \textbf{false} }
+		{(\textbf{E}[\textbf{while}(E)C], (\sigma_c, \sigma_o, (\sigma_l,x, C')), M) \longcltstep{\ \ \ }{t,P} (\textbf{E}[\textbf{skip}], (\sigma_c, \sigma_o, (\sigma_l,x, C')), M) }
+		$	
+		
+		\kspace
+		
+		$ \inferrule[If1]
+		{ \llbracket E \rrbracket_{\sigma_o \uplus \sigma_l} = \textbf{true} }
+		{(\textbf{E}[\textbf{if}(E)C_1\textbf{ else } C_2], (\sigma_c, \sigma_o, (\sigma_l,x, C)), M) \longcltstep{\ \ \ }{t,P} (\textbf{E}[C_1], (\sigma_c, \sigma_o, (\sigma_l,x, C)), M) } 
+		$
+		
+		\kspace
+		
+		$ \inferrule[If2]
+		{\llbracket E \rrbracket_{\sigma_o \uplus \sigma_l} = \textbf{false} }
+		{(\textbf{E}[\textbf{if}(E)C_1\textbf{ else } C_2], (\sigma_c, \sigma_o, (\sigma_l,x, C)), M) \longcltstep{\ \ \ }{t,P} (\textbf{E}[C_2], (\sigma_c, \sigma_o, (\sigma_l,x, C)), M) } 
+		$
+	
+		
+		\end{center}
+		
+		\vspace{0.2cm}
+		
+		\noindent \textbf{Thread transition outside method call:}
+		
+		\vspace{0.2cm}
+		
+		\begin{center}
+		
+%		\begin{comment}
+		$
+		\inferrule[Call]
+		{ P.L(f) = (y, C) \\ \llbracket E \rrbracket_{\sigma_c} = \textit{val} \\
+		x \in \textsf{dom}(\sigma_c) }
+		%
+		{ (\textbf{E}[x\assign f(E)], (\sigma_c, \sigma_o, \circ), M) \longcltstep{(t,f,\textit{val})}{t, P} (C;\textbf{noret}, (\sigma_c, \sigma_o, (\{ y \rightsquigarrow \textit{val}\}, x, \textbf{E}[\textbf{skip}])), M) }
+		$
+
+		\kspace
+		
+		$
+		\inferrule[Clt-Assn]
+		{ \llbracket E \rrbracket_{ \sigma_c } = val }
+		{ (\textbf{E}[x \assign E], (\sigma_c, \sigma_o, \circ), M) {\longcltstep{ \ \ \  }{t, P}\ (\textbf{E}[\textbf{skip}], (\sigma_c\{  x \rightsquigarrow val \}, \sigma_o, \circ), M) }}
+		$
+		
+		\kspace
+		
+		$ \inferrule[Clt-If1]
+		{ \llbracket E \rrbracket_{\sigma_c} = \textbf{true} }
+		{(\textbf{E}[\textbf{if}(E)C_1\textbf{ else } C_2], (\sigma_c, \sigma_o, \circ), M) \longcltstep{\ \ \ }{t,P} (\textbf{E}[C_1], (\sigma_c, \sigma_o, \circ), M) } 
+		$
+		
+		
+		\kspace
+		
+		$ \inferrule[Clt-If2]
+		{\llbracket E \rrbracket_{\sigma_c} = \textbf{false} }
+		{(\textbf{E}[\textbf{if}(E)C_1\textbf{ else } C_2], (\sigma_c, \sigma_o, \circ), M) \longcltstep{\ \ \ }{t,P} (\textbf{E}[C_2], (\sigma_c, \sigma_o, \circ), M) } 
+		$
+		
+		\kspace
+		
+		$ \inferrule[Clt-WhileCont]
+		{\llbracket E \rrbracket_{\sigma_c} = \textbf{true} }
+		{(\textbf{E}[\textbf{while}(E)C], (\sigma_c, \sigma_o, \circ), M) \longcltstep{\ \ \ }{t,P} (\textbf{E}[C;\textbf{while}(E)C], (\sigma_c, \sigma_o, \circ), M) } 
+		$
+		
+		\kspace
+		
+		$ \inferrule[Clt-WhileEnd]
+		{\llbracket E \rrbracket_{\sigma_c} = \textbf{false} }
+		{(\textbf{E}[\textbf{while}(E)C], (\sigma_c, \sigma_o, \circ), M) \longcltstep{\ \ \ }{t,P} (\textbf{E}[\textbf{skip}], (\sigma_c, \sigma_o, \circ), M) } 
+		$
+		
+		
+%		\end{comment}	
+	\end{center}
+	
+	
+	
+	
+	\kspace
+	
+	\begin{comment}
+	\subsubsection{Multiple-Steps of Global Transition}
+	
+	%	we abbreviate $ (\exists H.\ (W,S) \longmworldstep{\ H \ } (W',S)) $ as $ (W,S) \longmworldstep{\ \ \ } (W',S) $
+	
+	$ (W,S) \longmworldstep{\ H\ } (W',S') \ \triangleq\ \exists k.\ (W,S) \longkworldstep{\ H \ }{k} (W', S') $
+	
+	\begin{center}	
+		$
+		\inferrule[Wzero-Step]
+		{\ }
+		{(W,S) \longkworldstep{\ \epsilon \ }{0} (W, S)}
+		$
+		\qquad 
+		$
+		\inferrule[W-Steps]
+		{(W,S) \longworldstep{\ e \ } (W'',S'') \\
+			(W'', S'') \longkworldstep{\ H' \ }{k} (W',S') }
+		{(W,S) \longkworldstep{\ e::H' \ }{k\!\!+\!\!1} (W', S')}
+		$
+		
+	
+		
+	\end{center}
+\end{comment}	
+	\pagebreak
+
+	
+	\section{Byznearizablity}
+		
+	In this section we formalize correctness condition byznearizablity for distributed protocols.
+	
+	
+%	x \assign \textbf{faulty-call}(f, E_\textit{val}, E_\textit{tid})
+	
+	\subsection{Protocol Specification and Abstract Machine}
+	
+	\begin{longtable}{rcl}
+		\hline
+		
+		$ (\!\textit{HistOper})\ o $ & ::= & $ (t, f, val)::(t, \texttt{ok}, val)::\epsilon $ \\
+		
+		$ (\!\textit{MemBlocks}) \ B $ & ::= & $ \{t_1 \rightsquigarrow \sigma_1, ..., t_n \rightsquigarrow \sigma_n \} $ \\
+		
+		$(\!\textit{AbsObj})\ \theta$ & $ \in $ & $ \textit{PVar} \rightharpoonup \textit{AbsVal} $\\
+		
+		$ (\!\textit{MSpec})\ \gamma  $ & $ \in $ & $ \textit{Val} \rightharpoonup \textit{AbsObj} \rightharpoonup \textit{Val} \times \textit{AbsObj} $ \\
+		
+		$ (\!\textit{PSpec}) \ \Gamma $ & ::= & $ \{ f_1 \rightsquigarrow \gamma_1, ..., f_m \rightsquigarrow \gamma_m \} $ \\
+		
+		$ (\!\textit{AbsStmt})\ \mathbb{C} $& ::= &  $ C \mid \textbf{fexec}(f, val, \textit{tid}) \mid \textbf{fret}(val) $ \\
+		&&  $ \mid  \textbf{aftermath}(H) $ \\
+		
+		$ (\!\textit{AbsProg})\ \ \mathbb{W} $ & ::= & $ \textbf{with } \Gamma \textbf{ do } \mathbb{C} \parallel ... \parallel \mathbb{C} $ \\
+		
+		$ (\!\textit{AbsStk})\ \textit{ak} $ & ::= & $ (x, \mathbb{C}) \mid \circ $\\
+		
+		$ (\!\textit{AbsLocState})\ \textit{al} $ & ::= & $ (\sigma_c, \theta, ak) $\\
+		
+		$ (\!\textit{AbsPool})\ \mathbb{K} $ & ::= & $ \{ t_1 \rightsquigarrow ak_1, ..., t_n \rightsquigarrow ak_n \} $\\
+		
+		$ (\!\textit{AbsState})\ \mathbb{S}  $& ::= & $ (B_c, \theta, \mathbb{K}) $\\
+		\hline
+	\end{longtable}
+	
+
+	\subsection{Abstract Operational Semantics}
+	
+%	\kcomment{白茫茫大地真干净！}
+	
+	\begin{center}	
+		
+		$ \inferrule[AGlb-Int]
+		{  (\mathbb{C}_t, (B_c(t), \theta, \mathbb{K}(t))) \longbulletarrow{\ H \ }_{t, \Gamma} (\mathbb{C}_t', (\sigma_c', \theta', ak') )  }
+		%
+		{ (\textbf{with }\Gamma \textbf{ do } \mathbb{C}_1 \parallel ...\mathbb{C}_t ... \parallel \mathbb{C}_n, (B_c, \theta, \mathbb{K})) \longcircarrow{\ H\ } (\textbf{with }\Gamma \textbf{ do } \mathbb{C}_1 \parallel ...\ \mathbb{C}_t'\ ... \parallel \mathbb{C}_n, (B_c\{t \rightsquigarrow \sigma_c'\}, \theta', \mathbb{K}\{ t \rightsquigarrow ak' \}) ) }
+		$
+		
+		\kspace
+		
+		$
+		\inferrule[AGlb-Crash]
+		{ \not\exists H.\ \mathbb{C}_t = \textbf{aftermath}(H) \\ \mathbb{C}_t \neq \textbf{skip} \\ B_c(t)(\textit{faulty}) = \textbf{true} \\ o1, ..., o_m \in \textit{HistOper} }
+		{ (\textbf{with } \Gamma \textbf{ do } \mathbb{C}_1 \parallel ... \ \mathbb{C}_t\ ... \parallel \mathbb{C}_n,\ (B_c, \theta, \mathbb{K})) \longcircarrow{(t, \texttt{stop})::\epsilon} (\textbf{with } \Gamma \textbf{ do } \mathbb{C}_1 \parallel ...\ \textbf{aftermath}(o_1::...::o_m) \ ... \parallel \mathbb{C}_n,\ (B_c, \theta, \mathbb{K})) }
+		$
+		
+		
+		\kspace
+		
+		$ \inferrule[ACall]
+		{ f \in \textsf{dom}(\Gamma) \\
+			\llbracket E \rrbracket_{ \sigma_c } = val \\
+			x \in \textsf{dom}(\sigma_c)  \\  i \in  \sigma_c(\textit{Keys}) }
+		{ (\textbf{E}[x\assign f(E)] , (\sigma_c, \theta, \circ)) \longbulletarrow{\ \epsilon \ }_{t, \Gamma} (\textbf{fexec}(f, val, i), (\sigma_c, \theta, (x, \textbf{E}[\textbf{skip}]) )) } $
+		
+		
+		\kspace
+		
+		\begin{comment}
+		$ \inferrule[AFaulty-Call]
+		{	\sigma_c(\textit{faulty}) = \textbf{true} \\ 
+			f \in \textsf{dom}(\Gamma) \\
+			\llbracket E_\textit{val} \rrbracket_{ \sigma_c } = val \\
+			\llbracket E_\textit{tid} \rrbracket_{ \sigma_c } = \textit{tid} \\
+			\textit{tid} \in \sigma_c(\textit{Keys}) \\
+			x \in \textsf{dom}(\sigma_c) \\  }
+		{ (\textbf{E}[x\assign \textbf{faulty-call}(f, E_\textit{val}, E_\textit{tid})] , (\sigma_c, \theta, \circ)) \longbulletarrow{\ \epsilon \ }_{t, \Gamma} (\textbf{fexec}(f, val, \textit{tid}), (\sigma_c, \theta, (x, \textbf{E}[\textbf{skip}]) )) } $
+		
+		\kspace
+		
+		\end{comment}
+		
+		
+		$ \inferrule[AExec]
+		{  	\Gamma(f)(val)(\theta) = (val', \theta') }
+		{(\textbf{fexec}(f, val, \textit{tid}) , (\sigma_c, \theta, ak)) \longbulletarrow{ (\textit{tid}, f, val)::(\textit{tid}, \texttt{ok}, val')::\epsilon }_{ t, \Gamma} (\textbf{fret}(val'), (\sigma_c, \theta', ak))  } $
+		
+		
+		\kspace
+		
+		$ \inferrule[AFret]
+		{ \ }
+		{(\textbf{fret}(val') , (\sigma_c, \theta, (x, {C}))) \longbulletarrow{\ \epsilon \ }_{t, \Gamma} ({C}, (\sigma_c\{ x \rightsquigarrow val' \},\theta, \circ))  } $
+		\qquad
+		$ \inferrule[AAssn]
+		{ \eevalu{E}{\sigma_c} = val }
+		{(\textbf{E}[x \assign E], (\sigma_c, \theta, \circ)) \longbulletarrow{\ \epsilon \ }_{t,\Gamma} (\textbf{E}[\textbf{skip}], (\sigma_c\{ x \rightsquigarrow  val \}, \theta, \circ)) } 
+		$
+		
+		\kspace
+		
+		$ \inferrule[AStop]
+		{ \  \sigma_c(\textit{faulty}) = \textbf{true} \\ o_1, ..., o_m \in \textit{HistOper}}
+		{(\textbf{E}[\textbf{stop}], (\sigma_c, \theta, \circ)) \longbulletarrow{(t, \texttt{stop})::\epsilon}_{t,\Gamma} (\textbf{aftermath}(o_1::...::o_m), (\sigma_c, \theta, \circ)) } 
+		$
+		
+		
+		\kspace
+		
+		$ \inferrule[AAftermath]
+		{ \ o = (t, f, val)::(t, \texttt{ok}, val')::\epsilon \\ t \in \sigma_c(\textit{Keys}) \\ f \in \dom{\Gamma} \\ \Gamma(f)(val)(\theta) = (val', \theta')}
+		{(\textbf{aftermath}(o::H'), (\sigma_c, \theta, \circ)) \longbulletarrow{\ o\ }_{t,\Gamma} (\textbf{aftermath}(H'), (\sigma_c, \theta', \circ)) } 
+		$
+		
+		
+		\kspace
+		
+			
+		$ \inferrule[AIf1]
+		{ \llbracket E \rrbracket_{\sigma_c} = \textbf{true} }
+		{(\textbf{E}[\textbf{if}(E) \mathbb{C}_1\textbf{ else } \mathbb{C}_2], (\sigma_c, \theta, \circ)) \longbulletarrow{\ \epsilon \ }_{t, \Gamma} (\textbf{E}[\mathbb{C}_1], (\sigma_c, \theta, \circ)) } 
+		$\qquad
+		$ \inferrule[AIf2]
+		{ \llbracket E \rrbracket_{\sigma_c} = \textbf{false} }
+		{(\textbf{E}[\textbf{if}(E) \mathbb{C}_1\textbf{ else } \mathbb{C}_2], (\sigma_c, \theta, \circ)) \longbulletarrow{\ \epsilon \ }_{t, \Gamma} (\textbf{E}[\mathbb{C}_2], (\sigma_c, \theta, \circ)) } 
+		$
+		
+		\kspace
+		
+		$ \inferrule[AWhileCont]
+		{ \llbracket E \rrbracket_{\sigma_c} = \textbf{true} }
+		{(\textbf{E}[\textbf{while}(E)\mathbb{C}], (\sigma_c, \theta, \circ)) \longbulletarrow{\ \epsilon \ }_{t,\Gamma} (\textbf{E}[\mathbb{C};\textbf{while}(E)\mathbb{C}], (\sigma_c, \theta, \circ)) } 
+		$\qquad
+		$ \inferrule[AWhileEnd]
+		{ \llbracket E \rrbracket_{\sigma_c} = \textbf{false} }
+		{(\textbf{E}[\textbf{while}(E) \mathbb{C}], (\sigma_c, \theta, \circ)) \longbulletarrow{\ \epsilon \ }_{t,\Gamma} (\textbf{E}[\textbf{skip}], (\sigma_c, \theta, \circ)) } 
+		$
+		
+		
+		
+	% \end{center}
+	
+%	注意这里\ifrule{AStop} 前条件要求$ ak $为空，与\ifrule{Stop}中$ \kappa \neq \circ $不一样
+	
+	\begin{comment}
+		
+	
+	\subsection{Multiple-Steps of Abstract Global Transition}
+	
+	\vspace{0.2cm}
+	\begin{center}
+		$
+		\inferrule[AWzero-Step]
+		{\ }
+		{(\mathbb{W},\mathbb{S}) \longmcircarrow{\ \epsilon\ } (\mathbb{W}, \mathbb{S}) }
+		$
+		\qquad
+		$
+		\inferrule[AWe-Steps]
+		{(\mathbb{W}, \mathbb{S}) \longcircarrow{\ H_1 \ } (\mathbb{W}'', \mathbb{S}'') \\
+			(\mathbb{W}'', \mathbb{S}'') \longmcircarrow{\ H_2\ } (\mathbb{W}', \mathbb{S}') }
+		{(\mathbb{W},\mathbb{S}) \longmcircarrow{\ H_1::H_2\ } (\mathbb{W}', \mathbb{S}') }
+		$
+	\end{center}
+	\end{comment}
+	
+	
+	
+	\begin{itemize}
+		\item 为了建模"扮演"，函数调用语句 $ x \assign f(E) $ 是非确定性的。由\textit{Keys}的初始定义(见Initial abstract world configuration定义)，correct client只能以自己的名义执行$ f $，但faulty client可以非确定地以某个faulty client的名义执行$ f $
+		\item 为了建模"余波"，定义$ \textbf{aftermath}(H) $语句
+	\end{itemize}
+	
+	\kspace
+	
+	\subsection{Byznearizable relation between histories}
+	
+	the following are some trivial predicates and a function for events: 
+	
+	
+	$$
+	\begin{array}{l}
+		 \textsf{is-inv}(e)\ \triangleq\ \exists t,f,val.\ e = (t,f,val) \\
+		 \textsf{is-res}(e)\ \triangleq\ \exists t , val.\  e = (t,\texttt{ok},val) \\
+		 \textsf{is-stop}(e)\ \triangleq\ \exists t.\  e = (t, \texttt{stop}) \\		
+	\end{array}
+	\qquad
+	\textsf{get-tid}(e)\  \triangleq\ \left\{
+	\begin{array}{ll}
+	t & \textsf{if }e = (t, \wildcard, \wildcard)  \\
+	t & \textsf{if }e = (t, \texttt{stop})  \\
+	\textit{undefined} & \textit{o.w.}
+	\end{array}
+	\right.$$
+	
+	\vspace{0.3cm}
+	
+	the following are functions for history, note that $ H(i) $ is the i-th event in $ H $, $ H|_t $ is the projection of history $ H $ on thread t, we also call $ H|_t $ a $ \textit{t-component} $ of $ H $. We use $ |H| $ to represent the length of history $ H $.
+	%
+	$$ H(i)\ \triangleq\ \left\{
+	\begin{array}{ll}
+	H'(i-1) & \textsf{if } i > 1 \land H = e::H'\\
+	e & \textsf{if } i = 1 \land H = e::H'\\
+	\textit{undefined} & \textit{o.w.}
+	\end{array}
+	\right.
+	\qquad
+	|H| \ \triangleq\ \left\{
+	\begin{array}{ll}
+		1 + |H'| & \textsf{if } H = e::H' \\
+		0 & \textit{o.w.}
+	\end{array}
+	\right.
+	 $$ 
+	
+	
+	$$ H|_t \ \triangleq \ \left\{
+	\begin{array}{ll}
+		\epsilon & \textsf{if }H ::= \epsilon \\
+		e :: H'|_t & \textsf{if }(H ::= e::H') \land (t = \textsf{get-tid}(e))\\
+		H'|_t & \textit{o.w.}
+	\end{array}
+	\right.
+	$$
+	
+	
+	\begin{comment}
+		
+	
+	
+	\begin{definition}{{A response $ e' $ \textit{matches} an invocation $ e $ in $ H $, denoted $\textsf{match}(e, e') $}, if they have the same thread id:}
+		
+		$ \textsf{match}(e,e') \triangleq \textsf{is-inv}(e) \land \textsf{is-res}(e') \land (\textsf{get-tid}(e) = \textsf{get-tid}(e')) $
+		
+	\end{definition}
+	
+	\begin{definition}{{A History }$ H ${ is }\textit{seqential}{ iff 
+		\begin{itemize}
+			\item the first event is an invocation or stop
+			\item every response ared followed a inv or stop: 
+			\item dfg
+		\end{itemize}}}
+		
+		$ \textsf{seq}(H) \triangleq \left\{
+		\begin{array}{ll}
+		\textbf{true} & \textsf{if } H = \epsilon \\
+		\textsf{is-inv}(e) & \textsf{if }	H = e::\epsilon	\\
+		\textsf{match}(e, e') \land \textsf{seq}(H') & \textsf{if } H = e::e'::H' 
+		\end{array}
+		\right. $
+		
+	\end{definition}
+	
+	
+	\begin{definition}{{A history} $ H $ is \textit{well-formed} iff $ H|_t $ is sequential for all $ t $:}
+		
+		$ \textsf{well-formed}(H) \triangleq \forall t.\  \textsf{seq}(H|_t)$
+	\end{definition}
+
+	The well-formedness formalize two properties of history. First, it ensures all responses have corresponding invocation. Second, the history projection on each thread is "sequential". 
+	
+	
+	\begin{definition}{{An \textit{extensions} of $ H $, denoted \textsf{extensions}$ (H) $, is a set of histories constructed by appending responses to zero or more pending invocations of $ H $}}
+		
+		$\textsf{extensions} (H) \triangleq \{ H' \mid \exists H_\textit{ok}.\  (H' = H::H_\textit{ok}) \land \textsf{well-formed}(H') \land \forall i.\  \textsf{is-res}(H_\textit{ok}(i))  \} $
+	\end{definition}
+	
+	\begin{definition}{{The \textit{complete} histories of $ H $, denoted $ \textsf{completions}(H)$, is a set of subsequences of $ \textsf{extensions}(H) $ consisting of all matching invocations and responses}: }
+		
+		$ \textsf{completions}(H) \triangleq \{ \textsf{truncate}(H') \mid H' \in \textsf{extensions}(H) \} $
+		
+		\vspace{0.2cm}
+		
+		where \textit{truncate}$ (H) $ is the maximal complete sub-history of $ H $:
+		
+		$ \textsf{truncate}(H) \triangleq \left\{
+		\begin{array}{ll}
+		\epsilon & H = \epsilon \\
+		e::\textsf{truncate}(H') & \textsf{if } H = e::H' \land (\textsf{is-res}(e) \lor \exists i.\  \textsf{match}(e, H(i))) \\
+		\textsf{truncate}(H') & \textsf{if } H = e::H' \land (\lnot (\textsf{is-res}(e) \lor \exists i.\  \textsf{match}(e, H(i)))) \\
+		\end{array}
+		\right. $
+		
+	\end{definition}
+	
+	\begin{comment}
+		\begin{definition}{{two histories are }\textit{weakly equivalent} {iff their projection to each thread are equal}:}
+		
+		$ H \equiv H'\ \triangleq \ \forall t.\  H|_t = H'|_t $
+		
+		\end{definition}
+	\end{comment}
+	
+	\begin{definition}[\textbf{byznearizable relation}] A history $ H $ is \textit{linearizable} to $ H' $ \textit{w.r.t.} thread set $ \clientSet $ and  $ \faultyClients $, denoted $ H \preceq_\textsf{lin}^{\clientSet, \faultyClients} H' $ iff 
+
+
+	\quad $ \begin{array}{ll}
+		\textsf{byz1. }  (\forall t \in \clientSet.\ H|_t = H'|_t)  \\
+		\textsf{byz2. } (\exists \pi.\ (\forall i_1, i_2.\ \pi(i_1) = \pi(i_2) \implies i_1 = i_2) \land (\forall i.\ H(i) = H'(\pi(i)))\\
+		 \qquad \qquad  \land \ (\forall i, j.\ (i < j) \land (\textsf{is-res}(H(i)) \lor  \textsf{is-stop}(H(i))) \land (\textsf{is-inv}(H(j)) \lor \textsf{is-stop}(H(j)) ) \implies \pi(i) < \pi(j))\\
+		\textsf{byz3. } (\forall t \in \faultyClients.\ (\exists i.\ H(i) = (t,\texttt{stop}))) \implies (\forall t \in \faultyClients.\ \exists n.\ |\{ i \mid \textsf{get-tid}(H'(i)) = t \}| \leq n))  \\
+		
+%		& \land \ (\forall t \in \faultyClients.\ (t,\texttt{stop}) \in H) \implies (\forall t.\ (\exists H_1', H_2'.\ H' = H_1:: (t, \texttt{stop}) ::H_2) \land (\exists n.\ |\{ i \mid \textsf{get-tid}(H_2(i)) = t \}| \leq n))  \\
+		\end{array} $
+		
+		\vspace{0.2cm}
+		
+%		$ e \in H \ \triangleq \ \exists H_1, H_2.\ H = H_1::e::H_2 $
+		
+		
+	\end{definition}
+
+
+	\subsubsection{Byznearizable Protocol}
+	
+%	A linearizable object is one whose concurrent histories are linearizable w.r.t. some sequential specification. To define linearizability, we first need to define what is \textit{object's concurrent histories}. So we formalize the set of histories generated by the set of programs under following restriction:
+%	\begin{itemize}
+%		\item all acceptor threads in the program run and only run $ \kacc() $ in the beginning
+%		\item all proposer threads could run all possible statements which use function $ \kpropP $ only
+%	\end{itemize}
+	
+	\begin{definition}[\textbf{Produce Concurrent History}]\ history $ H $ is produced by executing $ W $ from state $ S $
+		
+		\vspace{0.2cm}
+		
+		$\inferrule[]
+		{(W,S) \longworldstep{\ e \ } (W',S') \\ \textsf{Hist}(W',S',H') }
+		{\textsf{Hist}(W,S,e::H')}$
+		\quad
+		$\inferrule[]
+		{(W,S) \longworldstep{\ \ \ } (W',S') \\ \textsf{Hist}(W',S',H) }
+		{\textsf{Hist}(W,S,H)}$
+		
+	\end{definition}
+	
+	\begin{definition}[\textbf{Produce Sequential History}]\ history $ H $ is produced by executing $ \mathbb{W} $ from state $ \mathbb{S} $
+		
+		\vspace{0.2cm}
+		
+		$\inferrule[]
+		{(\mathbb{W},\mathbb{S}) \longcircarrow{\ H_1 \ } (\mathbb{W}',\mathbb{S}') \\ \textsf{Hist}(\mathbb{W}',\mathbb{S}',H_2) }
+		{\textsf{Hist}(\mathbb{W},\mathbb{S},H_1::H_2)}$
+
+	\end{definition}
+	
+	\vspace{0.2cm}
+	
+	\begin{definition}[\textbf{Initial World Configuration}]\ 
+		
+		$ \begin{array}{ll}
+			(W, (\varDelta, \emptyset)) = \textsf{pInit}_{\clientSet, \faultyClients, \replicaSet, \faultyReplica}(P, B_o) \ \triangleq \  & \textsf{well-formed}_{P, \clientSet, \faultyClients, \replicaSet, \faultyReplica}(W, (\varDelta, \emptyset)) \\
+			
+			& \land \ (\forall t \in \replicaSet.\ C_t = P.C_{\textit{serv}} )\\
+			
+			& \land\  (\forall t \in \replicaSet \uplus \faultyReplica.\ \varDelta(t).\sigma_o = B_o(t))\\
+			
+			& \land \ (\forall t \in \clientSet.\ \varDelta(t).\kappa = \circ )  \land (\forall t \in \faultyClients \uplus \replicaSet \uplus \faultyReplica.\ \varDelta(t).\kappa = (\emptyset, \wildcard, \textbf{skip}) )  \\
+			
+%			& \land \ (\forall t \in \clientSet \uplus \faultyClients \uplus \replicaSet \uplus \faultyReplica.\ (\varDelta(t).\sigma_o)(\inbuf) = \emptyset  )
+			
+			& {\land \ (\forall t \in \faultyClients.\ \exists C.\ C_t = C;\textbf{stop})}
+		\end{array} $
+	\end{definition}
+	
+	\textsf{pInit}意味着
+	\begin{itemize}
+		\item 正确的replica线程初始程序只能是协议的服务程序$ C_\textit{serv} $，故障的(\textit{faulty} = \textbf{true}的) replica线程的初始程序不做任何限制
+		
+		\item faulty client的初始程序一定是某个程序$ C $与\textbf{stop}语句的串联. 用于标记faulty client的终止
+		
+		\item $ B_o $用于初始化所有replica线程的初始local object state $ \sigma_o $
+		
+		\item 所有replica和faulty client线程的local stack 初始都是$ (\emptyset, \wildcard, \textbf{skip}) $. 这是为了符合语义规则，使replica线程能不经函数调用执行\textbf{send}, \textbf{recv}语句({\color{red} 这样定义可能可读性上有些问题})
+%		\item 所有线程初始时的接收缓冲池为空(\textit{Inbuf})
+
+	\end{itemize}
+	
+	
+	\begin{definition}[\textbf{Concurrent Histories}]\ 
+		 
+		$ \histSet{P, B_o, \clientSet, \faultyClients} \ \triangleq\ \left\{ H \ \middle\vert  \begin{array}{ll}
+			\exists {W}, {S}, \replicaSet, \faultyReplica.\ ({W}, {S}) = \textsf{pInit}_{\clientSet, \faultyClients, \replicaSet, \faultyReplica}(P, B_o) \ 
+			\land \ \textsf{Hist}({W}, {S}, H) 
+		\end{array}  \right\} $
+	\end{definition}
+	
+	
+	
+	\begin{definition}[\textbf{Initial Abstract World Configuration}]\ 
+		
+		
+		$ \begin{array}{ll}
+			(\mathbb{W}, (B_c, \theta, \mathbb{K})) = \textsf{aInit}_{\clientSet, \faultyClients}(\Gamma, \theta) \ \triangleq \ & \exists n. \ \exists i_1, ..., i_n. \ \exists {C}_{i_1}, ..., {C}_{i_n}.\ \clientSet \uplus \faultyClients  = \{ i_1, ..., i_n \} \land (\mathbb{W} = \textbf{with} \ \Gamma \textbf{ do } {C}_{i_1} \parallel ... \parallel {C}_{i_n})\\
+			
+%			\land\  (\forall t \in \clientSet.\ B_c(t)(\textit{faulty}) = \textbf{false} ) \land (\forall t \in \faultyClients.\ B_c(t)(\textit{faulty}) = \textbf{true} )\\
+			
+%			\land\  (\forall t \in \faultyClients.\ B_c(t)(\textit{F}_c) = \faultyClients) \\
+			
+			& \land \ (\forall t \in \clientSet.\ B_c(t)(\textit{faulty}) = \textbf{false} \land B_c(t)(\textit{Keys}) = \{t\} ) \\
+			
+			& \land \ (\forall t \in \faultyClients.\ B_c(t)(\textit{faulty}) = \textbf{true} \land B_c(t)(\textit{Keys}) = \faultyClients) \\
+			
+			& \land \ (\forall t \in \clientSet \uplus \faultyClients.\ (\mathbb{S}.\mathbb{K})(t) = \circ)  \\
+			
+			
+			& {\land \ (\forall t \in \faultyClients.\ \exists {C}.\ {C}_t = C;\textbf{stop})}\\
+			
+		\end{array} $
+	\end{definition}
+	
+	\textsf{aInit}意味着
+	\begin{itemize}
+		\item 正确的replica线程的初始程序只能有$ \textit{Stmt} $中定义的语句(即初始程序中没有\textbf{faulty-call}语句)
+		
+		\item faulty client的初始程序一定是某个程序$ C $与\textbf{stop}语句的串联. 用于标记faulty client的终止
+		
+%		\item faulty client初始程序中有$ \textbf{aftermath}(H) $,其中$ H $还是infinite的怎么办，能不能将aftermath和faulty-call统一起来？
+		
+	\end{itemize}
+	
+	
+	\begin{definition}[\textbf{Legal Sequential Histories}]
+	The set of all {\textit{legal sequential histories}} of protocol spec $ \Gamma $ and initial $ \theta $ \textit{w.r.t.} client set $ \clientSet $ and faulty client set $ \faultyClients $ is defined as follow:
+	
+	$ \absHistSet{\Gamma, \theta, \clientSet, \faultyClients} \ \triangleq \ \left\{ H \ \middle\vert  \begin{array}{ll}
+		\exists \mathbb{W}, \mathbb{S}.\ (\mathbb{W}, \mathbb{S}) = \textsf{aInit}_{\clientSet, \faultyClients}(\Gamma, \theta) \ 
+		\land \ \textsf{Hist}(\mathbb{W}, \mathbb{S}, H)  )
+	\end{array}  \right\} $
+	\end{definition}
+	
+	\vspace{0.2cm}
+	
+	
+	\begin{comment}
+	\begin{definition} [\textbf{Consensus Sequential Specification}]\ 
+		
+		$ \textsf{Gamma}(f) \ \triangleq \ \{ f  \rightsquigarrow \texttt{FP} \} $
+		
+		where 
+		$$\begin{array}{ll}\			
+			\texttt{FP}(pval)(\theta)\ \triangleq\ \left\{  
+			\begin{array}{ll}
+				(pval, \theta\{ \texttt{COBJ} \rightsquigarrow pval \}) & \textsf{if } (\theta(\texttt{COBJ}) = \texttt{undef}) \land (pval \neq \texttt{undef})\\
+				(val, \theta) & \textsf{if } (\theta(\texttt{COBJ}) = val) \land (val \neq \texttt{undef})\\
+				
+				%				\textit{undefined} & \textit{o.w. }\\
+			\end{array}
+			\right.\\
+		\end{array}$$
+	
+	\vspace{0.2cm}
+	and $ \texttt{COBJ} $ is the program variable name of any {abstract} consensus object
+		
+	general initial object:	
+		$$ \theta_\texttt{ini} \ \triangleq \ \{ \texttt{COBJ} \rightsquigarrow \texttt{undef} \} $$
+	
+	\end{definition}
+	
+	\end{comment}
+	
+%	物理地址：$\xi_i$
+	
+	
+	
+	
+	\begin{comment}
+	\begin{definition}[\textbf{Byznearizability}] {$ P \preceq_{\varphi} \Gamma $ iff}
+		
+		$ \begin{array}{ll}
+		\forall B_o, \clientSet, \faultyClients, H.\  H \in \histSet{P, B_o, \clientSet, \faultyClients} \implies & (\exists H_c,H'.\ H_c \in \red{\textsf{completions}}(H) \land H' \in \absHistSet{\Gamma, \varphi(B_o), \clientSet, \faultyClients} 
+		  \land (H_c \preceq_\textsf{lin}^{\clientSet, \faultyClients} H'))
+		\end{array} $
+	\end{definition}
+	
+	\begin{itemize}
+		\item \red{由于$ H $可能infinite，我不是很明白completion怎么做。我想也许可以修改abstract machine 生成history的语义，使之前成总是对出现的function inv和res改为末尾(指线程t的分量的末尾)可以出现仅function inv事件的情形，这样就不需要用$ H $的complete(而直接用$ H $)来反映byz1和byz2}
+	\end{itemize}
+	\end{comment}
+
+	\begin{definition}[\textbf{Byznearizability}] {$ P \preceq_{\varphi} \Gamma $ iff}
+		
+		$ \begin{array}{ll}
+			\forall B_o, \clientSet, \faultyClients, H.\  H \in \histSet{P, B_o, \clientSet, \faultyClients} \implies & (\exists H'.\ H' \in \absHistSet{\Gamma, \varphi(B_o), \clientSet, \faultyClients} 
+			\land (H \preceq_\textsf{lin}^{\clientSet, \faultyClients} H'))
+		\end{array} $
+	\end{definition}
+	
+	
+	\begin{itemize}
+		\item 由于这里的history是由$ \textsf{Hist}(W,S,H) $定义，若history on 某thread的projection是有限长的，则我认为该线程不会有pending invocation, 若无限长，就也不用考虑pending的问题了。所以我没有定义completion
+	\end{itemize}
+	
+	\pagebreak
+	
+	
+\end{small}
+
+
+\end{document}
