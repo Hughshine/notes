@@ -143,3 +143,38 @@ We want to devise a protocol so that:
 ***
 
 【need: review】
+
+***
+
+## Safety and Liveness
+
+safety: something bad will never happen.
+
+liveness: something good will happen, but we don't know when. (是不是可以理解为有限步可到达？)
+
+### For sequential programs
+
+safety: the program will never produce a wrong result (partial correctness).
+
+liveness: the program will produce a result(termination).
+
+### For state-transition graphs
+
+safety: 若发生了错误，错误总会在有限次转移后出现（"if something bad happens on an infinite run, then it happens already on some finite prefix."）【也意味着，若R的每个前缀满足P，R满足P】
+
+liveness: 错误永远不会在有限次转移后出现。（those properties whose violation never has a finite witness）【也意味着：对于任意有限次转移R，R满足或不满足P，存在一些拓展R1，R1满足P】。【这两个等价吗，疑惑，TODO】
+
+换句话说：
+
+safety: the properties that can be checked on finite executions.
+
+liveness: the properties that cannot be checked on finite executions. (And they need to be checked on infinite executions).
+
+### Example
+
+1. Mutual execlusion: safety. 一些不好的事情 永远不会发生。
+2. Bounded overtaking: safety. 在a想要进入critical region时，b最多进入了一次。也是不好的事情不发生。
+3. Starvation freedom: liveness. 假设B不会永远呆在critical section. 当A想要进入critical section, 它最终会进入。【locally】
+4. Deadlock freedom: liveness. 有一些进程一直在进展。 【globally】。虽然也可以叙述为“不是所有的线程会同时get stuck”，但它需要在任意execution上都要验证，在有限的execution上get stuck或未get stuck，与无限的execution get stuck or not 无关。
+
+starvation-freedom 是强过 deadlock-freedom的。
