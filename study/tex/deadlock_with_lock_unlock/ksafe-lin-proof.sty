@@ -1,0 +1,238 @@
+\ProvidesPackage{ksafe-lin-proof}
+
+\usepackage{multicol,longtable,caption,tabu}
+\usepackage{multicap}
+\usepackage{amsmath,stmaryrd, amssymb,amsthm}
+\usepackage{comment}
+\usepackage{changepage}
+\usepackage{graphicx}
+\usepackage{color,xcolor}
+\usepackage{semantic}
+\usepackage{fontspec}
+\usepackage{ifthen}
+\usepackage{mathpartir}
+\usepackage[ %pdflatex,pdftex这里决定运行文件的方式不同
+pdfstartview=FitH,
+CJKbookmarks=true,
+bookmarksnumbered=true,
+bookmarksopen=true,
+%colorlinks, %注释掉此项则交叉引用为彩色边框(将colorlinks和pdfborder同时注释掉)
+%pdfborder=001,   %注释掉此项则交叉引用为彩色边框
+linkcolor=blue,
+anchorcolor=blue,
+citecolor=green
+]{hyperref} 
+\pagestyle{plain}
+\usepackage{setspace}
+\usepackage{mathrsfs}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{algorithm,algpseudocode,float}
+\usepackage{lipsum}
+\usepackage{centernot}
+\usepackage{autobreak}
+\usepackage{enumitem}
+\setlistdepth{9} 
+% algorithm
+
+\makeatletter
+\newenvironment{breakablealgorithm}
+{
+	\begin{center}
+		\refstepcounter{algorithm}% New algorithm
+		\hrule height.8pt depth0pt \kern2pt% \@fs@pre for \@fs@ruled
+		\renewcommand{\caption}[2][\relax]{% Make a new \caption
+			{\raggedright\textbf{\ALG@name~\thealgorithm} ##2\par}%
+			\ifx\relax##1\relax % #1 is \relax
+			\addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##2}%
+			\else % #1 is not \relax
+			\addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##1}%
+			\fi
+			\kern2pt\hrule\kern2pt
+		}
+	}{
+		\kern2pt\hrule\relax
+	\end{center}
+}
+\makeatother
+\newcommand{\instcode}[1]{\colorbox{yellow!40}{#1}}
+
+%	\makeatletter
+%	\algrenewcommand\ALG@beginalgorithmic{\small\ttfamily}
+%	\makeatother
+
+
+% definition, lemma, theorem evironment
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{theorem}{Theorem}
+
+% transition arrows
+
+
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows}
+
+
+
+\newcommand{\arspace}{\hspace{0.5mm}}
+
+
+
+\newcommand\longworldstep[1]{\mathrel{\raisebox{-0mm}{\!\!
+			\begin{tikzpicture}[>=stealth]
+				\node[inner sep=0.5ex] (a) {$\scriptstyle #1$};
+				\coordinate (ar1) at ($(a.south west) + (-0.05,0)$);
+				\coordinate (ar2) at ($(a.south east) + (0.05,0)$);
+				
+				\path[draw] (ar1) --(ar2);
+				\path[draw] ($ (ar1) + (0,-0.07) $) -- ($(ar1) + (0,0.07)$);
+				
+				\draw[black] ($ (ar2) + (-0.082, 0.09) $ ) arc [start angle = 203, end angle = 235, x radius = 0.22cm, y radius = 0.22cm];
+				\draw[black] ($ (ar2) + (-0.005, 0.003) $ ) arc [start angle = 125, end angle = 157, x radius = 0.22cm, y radius = 0.22cm];
+\end{tikzpicture}} }}
+
+\newcommand\longkworldstep[2]{\mathrel{\raisebox{-0.1mm}{\!\!
+			\begin{tikzpicture}[>=stealth]
+				\node[inner sep=0.5ex] (a) {$\scriptstyle #1$};
+				\coordinate (ar1) at ($(a.south west) + (-0.05,0)$);
+				\coordinate (ar2) at ($(a.south east) + (0.05,0)$);
+				\path[draw] (ar1) --(ar2);
+				\path[draw] ($(ar1) + (0,-0.07)$) --($(ar1) + (0,0.07)$);		
+				\node at ($ (ar2) +(0.14,0.14) $) {\tiny$ #2 $};
+				\draw[black] ($ (ar2) + (-0.082, 0.09) $ ) arc [start angle = 203, end angle = 235, x radius = 0.22cm, y radius = 0.22cm];
+				\draw[black] ($ (ar2) + (-0.005, 0.003) $ ) arc [start angle = 125, end angle = 157, x radius = 0.22cm, y radius = 0.22cm];
+		\end{tikzpicture}} \!\!}}
+
+\newcommand\longmworldstep[1]{\mathrel{\raisebox{-1mm}{\!\!
+			\begin{tikzpicture}[>=stealth]
+				\node[inner sep=0.5ex] (a) {$\scriptstyle #1$};
+				\coordinate (ar1) at ($(a.south west) + (-0.05,0)$);
+				\coordinate (ar2) at ($(a.south east) + (0.05,0)$);
+				\path[draw] (ar1) --(ar2);
+				\path[draw] ($(ar1) + (0,-0.07)$) --($(ar1) + (0,0.07)$);		
+				\node at ($ (ar2) +(0.08,0.04) $) {$^\ast$};
+				\draw[black] ($ (ar2) + (-0.082, 0.09) $ ) arc [start angle = 203, end angle = 235, x radius = 0.22cm, y radius = 0.22cm];
+				\draw[black] ($ (ar2) + (-0.005, 0.003) $ ) arc [start angle = 125, end angle = 157, x radius = 0.22cm, y radius = 0.22cm];
+		\end{tikzpicture}} \!\!}}
+
+
+%\newcommand{\longmworldstep}[1]{\arspace \rule[0.25mm]{0.15mm}{0.11cm} \hspace{-1.2mm}\xrightarrow{#1}\vspace{0mm}\hspace{-1mm}^\ast \arspace}
+%\newcommand{\longworldstep}[1]{\arspace \rule[0.25mm]{0.15mm}{0.11cm} \hspace{-1.1mm}\xrightarrow{#1}\vspace{0mm}\arspace}
+
+
+\newcommand{\longcltstep}[2]{\arspace\xrightarrow{#1}\hspace{-2.5mm}\rightarrow_{#2}\!}
+\newcommand{\longmcltstep}[2]{\arspace\xrightarrow{#1}\hspace{-2.5mm}\rightarrow_{#2}^\ast\!}
+
+\newcommand{\longkcltstep}[3]{\arspace\xrightarrow{#1}\hspace{-2.5mm}\rightarrow_{#2}^{#3}\!}
+%\newcommand{\longmthreadstep}[2]{\arspace\xrightarrow{#1}\hspace{-1mm}^\ast_{#2}\arspace}
+%\newcommand{\longthreadstep}[2]{\arspace\xrightarrow{#1}_{#2}\arspace}
+
+
+
+\newcommand\longcircarrow[1]{\mathrel{\raisebox{-0mm}{\!\!
+			\begin{tikzpicture}[>=stealth]
+				\node[inner sep=0.35ex] (a) {$\scriptstyle #1$};
+				\coordinate (ar1) at ($(a.south west) + (0.00,0)$);
+				\coordinate (ar2) at ($(a.south east) + (0.05,0)$);
+				\path[draw] (ar1) --(ar2);
+				%		\path[draw] ($ (ar1) + (0,-0.07) $) -- ($(ar1) + (0,0.07)$);
+				\draw[black] ($ (ar1) + (-0.5mm,0) $) circle (0.5mm);
+				\draw[black] ($ (ar2) + (-0.082, 0.09) $ ) arc [start angle = 203, end angle = 235, x radius = 0.22cm, y radius = 0.22cm];
+				\draw[black] ($ (ar2) + (-0.005, 0.003) $ ) arc [start angle = 125, end angle = 157, x radius = 0.22cm, y radius = 0.22cm];
+\end{tikzpicture}}}}
+
+
+\newcommand\longmcircarrow[1]{\mathrel{\raisebox{-0.9mm}{\!\!
+			\begin{tikzpicture}[>=stealth]
+				\node[inner sep=0.35ex] (a) {$\scriptstyle #1$};
+				\coordinate (ar1) at ($(a.south west) + (0.00,0)$);
+				\coordinate (ar2) at ($(a.south east) + (0.05,0)$);
+				\path[draw] (ar1) --(ar2);
+				\node at ($ (ar2) +(0.08,0.04) $) {$^\ast$};
+				\draw[black] ($ (ar1) + (-0.5mm,0) $) circle (0.5mm);
+				\draw[black] ($ (ar2) + (-0.082, 0.09) $ ) arc [start angle = 203, end angle = 235, x radius = 0.22cm, y radius = 0.22cm];
+				\draw[black] ($ (ar2) + (-0.005, 0.003) $ ) arc [start angle = 125, end angle = 157, x radius = 0.22cm, y radius = 0.22cm];
+		\end{tikzpicture}}\!\!} }
+
+%\newcommand{\longmcircarrow}[1]{\arspace\circ\hspace{-0.9mm}\joinrel\xrightarrow{#1}\hspace{-1mm}^\ast}
+
+\newcommand{\longbulletarrow}[1]{\arspace{\bullet}\hspace{-0.9mm}\joinrel\xrightarrow{#1}}
+\newcommand{\longmbulletarrow}[1]{\arspace{\bullet}\hspace{-0.9mm}\joinrel\xrightarrow{#1}\hspace{-1mm}^\ast}
+
+\newcommand{\longdiacircarrow}[1]{\arspace{\diamond}\hspace{-0.9mm}\joinrel\xrightarrow{#1}}
+\newcommand{\longmdiacircarrow}[1]{\arspace{\diamond}\hspace{-0.9mm}\joinrel\xrightarrow{#1}\hspace{-1mm}^\ast}
+
+
+% proof tool
+\newcounter{swt}
+\setcounter{swt}{1}
+%\newcommand{\proofSel}[1]{\ifthenelse{\value{swt} > 0}{#1}{Proof folded}}
+\newcommand{\hypo}[1]{\mathbb{H}_\texttt{#1}}
+\newcommand{\disc}[2]{\vspace{0.2cm}
+	\begin{adjustwidth}{-#1cm}{0cm}
+		#2
+\end{adjustwidth}}
+\newcommand{\prfSpace}{\vspace{0.7cm}}
+\newcommand{\proofIdea}{\noindent\textit{Proof Idea:}}
+\newcommand{\assume}[1]{{\color{red}#1}}
+\newcommand{\admitted}{{\color{red} Admitted.}}
+\newcommand{\intro}[2]{\hspace{-#1cm}{\textbf{#2}}
+	
+	\vspace{0.2cm}
+	
+}
+\newenvironment{kfomula}[1]
+{
+	
+	\def\fooNoI{#1}
+	\vspace{-#1 cm}
+	\begin{center}
+		$\begin{array}{ll} 
+			
+		}
+		{
+			
+		\end{array}$
+	\end{center}
+	
+	\vspace{-\fooNoI cm}
+	
+}
+
+
+% miscell
+\newcommand{\ifrule}[1]{{\textsc{#1}}}
+\newcommand{\wskip}[2]{\textbf{wskip}_{(#1,#2)}}
+\newcommand{\biject}[1]{\overset{#1}{\longleftrightarrow}}
+\newcommand{\assign}{\!\!\ :=\ \!\!}
+\newcommand{\kspace}{\vspace{0.5cm}}
+\newcommand{\tx}{{t_1}}
+\newcommand{\sdenvir}[1]{\langle #1 \rangle}
+\newcommand{\eevalu}[2]{\llbracket #1 \rrbracket_{ #2 }}
+\newcommand{\msign}[2]{[\ #1\ ]_{\dagger_{#2}}}
+\newcommand{\kcomment}[1]{\ifthenelse{\value{swt} > 0}{{\color{red} #1}}{}}
+\newcommand{\dom}[1]{{\textsf{dom}(#1)}}
+\newcommand{\histSet}[1]{{\mathcal{H}\llbracket #1 \rrbracket}}
+\newcommand{\wildcard}{\hspace{0.4mm}\rule[-0.2mm]{2mm}{0.15mm}\hspace{0.4mm}}
+\newcommand{\instinct}{{\color{red} 证}}
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\notimplies}{\centernot\implies}
+\newcommand{\initobj}{\theta_\texttt{ini}}
+\newcommand{\fp}{{f_{\hspace{-0.3mm}p}}}
+\newcommand{\linh}{\preceq_\textsf{lin}}
+\newcommand{\allThread}{\mathcal{T}}
+\newcommand{\letin}[2]{\textbf{let } #1 \textbf{ in } #2}
+\newcommand{\pand}{\ \&\!\&\ }
+
+
+
+% function name
+%\newcommand{\kpropP}{\textsc{\texttt{proposeP}}}
+%\newcommand{\kpropRC}{\textsc{\texttt{proposeRC}}}
+%\newcommand{\kread}{\textsc{\texttt{read}}}
+%\newcommand{\kwrite}{\textsc{\texttt{write}}}
+%\newcommand{\kacc}{\textsc{\texttt{acceptor}}}
