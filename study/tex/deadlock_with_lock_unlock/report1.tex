@@ -281,81 +281,103 @@
 		{(l := \textbf{decl\_lock}()(pid), \sigma)\longrightarrow(skip, \sigma(Lock(l\rightsquigarrow new\;Lock()), LockHost(Lock(l)\rightsquigarrow \perp))}
 		$
 
-		% TODO. start from here
-
 		\kspace
-		$  % 可能出现 lock(l1), lock(l2)的情况.
+		$  % 可能出现 lock(l1), lock(l2)的情况. 可能申请了同意把锁，这一点要处理。
+		   % 如果一个线程，没有处于blocked状态，且刚刚上了锁、锁已经非空，这意味着它可以抢锁。同时，这个线程又可以成功上一把新锁。
+		   % 执行这个语句后，该线程不再处于停等状态
 		\inferrule[Lock-SUCC-Locked]
-		{Unblocked(pid, \sigma)\;\;\; LockFree(l, \sigma)\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'\not=\perp}
-		{(\textbf{lock}(l)(pid), \sigma) \longrightarrow (skip, \sigma(LockHost(l \rightsquigarrow pid, l' \rightsquigarrow pid), ParRequest(pid\rightsquigarrow \perp)))}
+		{Unblocked(pid, \sigma)\;\;\; LockFree(l, \sigma)\vee \sigma.LockHost(l)=pid\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'\not=\perp}
+		{(\textbf{lock}(l)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(LockHost(l \rightsquigarrow pid, l' \rightsquigarrow pid), ParRequest(pid\rightsquigarrow \perp)))}
 		$
 
 		
 		\kspace
-		$  % 可能出现 lock(l1), lock(l2)的情况.
+		$  % 可能出现 lock(l1), lock(l2)的情况. 
+		   % 如果一个线程，没有处于blocked状态，且也没有处于停等状态，此时申请一把新锁；
+		   % 新锁无人占用。这意味着这个线程可以成功上新锁。
+		   % 执行这个语句后，线程不处于停等状态。
 		\inferrule[Lock-SUCC-UnLocked]
-		{Unblocked(pid, \sigma)\;\;\; LockFree(l, \sigma)\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'=\perp}
-		{(\textbf{lock}(l)(pid), \sigma) \longrightarrow (skip, \sigma(LockHost(l \rightsquigarrow pid)))}
+		{Unblocked(pid, \sigma)\;\;\; LockFree(l, \sigma)\vee \sigma.LockHost(l)=pid\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'=\perp}
+		{(\textbf{lock}(l)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(LockHost(l \rightsquigarrow pid)))}
 		$
 
 		\kspace
-		$  
+		$  % 线程处于停等状态，且等候的锁已空；此时线程申请一把新锁，新锁不属于它、非空、属于别人，所以线程达到新的停等状态。
+		   % 旧锁属于该线程、该线程依赖新锁。
 		\inferrule[Lock-Fail-Locked]
-		{Unblocked(pid, \sigma)\;\;\;\neg LockFree(res, \sigma)\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'\not=\perp}  % 需要增加一条，删除对以前资源的依赖 ParRequest(pid\rightsquigarrow \perp)
-		{(\textbf{lock}(l)(pid), \sigma) \longrightarrow (skip, \sigma(LockHost(l' \rightsquigarrow pid), ParRequest(pid\rightsquigarrow l)))}
+		{Unblocked(pid, \sigma)\;\;\;\neg LockFree(l, \sigma)\wedge \sigma.LockHost(l)\not=pid\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'\not=\perp}
+		{(\textbf{lock}(l)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(LockHost(l' \rightsquigarrow pid), ParRequest(pid\rightsquigarrow l)))}
 		$
 		
 		% TODO: Start from here
 
 		\kspace
-		$  
+		$  % 线程处于正常执行状态，此时线程申请一把锁。这把锁被别人占有，所以线程陷入新的停等状态。
 		\inferrule[Lock-Fail-UnLocked]
-		{Unblocked(pid, \sigma)\;\;\; Own(pid, res, \sigma) \vee ResFree(res, \sigma)}  % 需要增加一条，删除对以前资源的依赖 ParRequest(pid\rightsquigarrow \perp)
-		{(\textbf{set}(res)(pid), \sigma) \longrightarrow (skip, \sigma(ResHost(res \rightsquigarrow pid), ParRequest(pid\rightsquigarrow \perp)))}
+		{Unblocked(pid, \sigma)\;\;\; \neg LockFree(l, \sigma)\wedge \sigma.LockHost(l)\not= pid\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'=\perp}  
+		{(\textbf{lock}(l)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(ParRequest(pid\rightsquigarrow l)))}
 		$
 
 		
 		\kspace
+		$ % 线程处于停等状态，等待的锁已空闲，线程解锁一把自己拥有的锁。因而取消停等状态、获得等待的锁，并释放指定的锁。
+		  % 这个规则用于两把锁不一致的情况
+		\inferrule[Unlock-Locked-1]
+		{Unblocked(pid, \sigma)\;\;\; Own(pid, l, \sigma)\wedge l\not=l'\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'\not=\perp}
+		{\textbf{unlock}(l)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(LockHost(l' \rightsquigarrow pid, l \rightsquigarrow \perp),  ParRequest(pid\rightsquigarrow \perp)))}
 		$
-		\inferrule[Unlock-Locked]
-		{Unblocked(pid, \sigma)\;\;\; Own(pid, res, \sigma)}
-		{\textbf{unset}(res)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(ResHost(res \rightsquigarrow \perp),  ParRequest(pid\rightsquigarrow \perp)))}
-		$
-
 
 		\kspace
+		$ % 线程处于停等状态，等待的锁已空闲，线程解锁一把自己拥有的锁。因而取消停等状态、获得等待的锁，并释放指定的锁。
+		  % 这个规则用于
+		  % 如果等待的锁和释放的锁一致，则将锁释放。
+		\inferrule[Unlock-Locked-2]
+		{Unblocked(pid, \sigma)\;\;\; Own(pid, l, \sigma)\wedge l=l'\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'\not=\perp}
+		{\textbf{unlock}(l)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(LockHost(l \rightsquigarrow \perp),  ParRequest(pid\rightsquigarrow \perp)))}
 		$
+
+		\kspace
+		$ % 线程处于正常状态，解锁一把它拥有的锁，成功解锁
 		\inferrule[Unlock-UnLocked]
-		{Unblocked(pid, \sigma)\;\;\; Own(pid, res, \sigma)}
-		{\textbf{unset}(res)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(ResHost(res \rightsquigarrow \perp),  ParRequest(pid\rightsquigarrow \perp)))}
+		{Unblocked(pid, \sigma)\;\;\; Own(pid, l, \sigma)\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'=\perp}
+		{\textbf{unlock}(l)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(LockHost(l \rightsquigarrow \perp)))}
 		$
 
+
+
+		% \kspace
+		% $ % 需要一条Rule处理UnLock不拥有的锁。目前没有给相当于Get Stuck.
+		% \inferrule[Unlock-Fail]
+		% {Unblocked(pid, \sigma)\;\;\; Own(pid, l, \sigma)\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'=\perp}
+		% {\textbf{unlock}(l)(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(LockHost(l \rightsquigarrow \perp)))}
+		% $
+
 		\kspace
-		$
+		$  % 线程pid正在停等，停等后要创建子线程。目前停等的资源已经空闲。该线程获得该锁。
 		\inferrule[SubProc-Locked]
-		{Unblocked(pid, \sigma)}
-		{(pid' = \textbf{subproc}(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(Par(pid' \rightsquigarrow nextpid()), ParRequest(pid'\rightsquigarrow\perp)))}  % TODO: nextpid()
+		{Unblocked(pid, \sigma)\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'\not=\perp}
+		{(pid' = \textbf{subproc}(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(ParM(pid' \rightsquigarrow nextpid()), LockHost(l'\rightsquigarrow pid), ParRequest(pid\rightsquigarrow \perp, pid'\rightsquigarrow\perp)))}  % TODO: nextpid()
 		$
 
 		\kspace
-		$
+		$  % 线程pid处于正常状态，正要创建子线程。子线程创建成功。
 		\inferrule[SubProc-UnLocked]
-		{Unblocked(pid, \sigma)}
-		{(pid' = \textbf{subproc}(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(Par(pid' \rightsquigarrow nextpid()), ParRequest(pid'\rightsquigarrow\perp)))}  % TODO: nextpid()
+		{Unblocked(pid, \sigma)\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'=\perp}
+		{(pid' = \textbf{subproc}(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(ParM(pid' \rightsquigarrow nextpid()), ParRequest(pid'\rightsquigarrow\perp)))}  % TODO: nextpid()
 		$
 
 		\kspace
-		$
+		$ % 可能有lock(l)(pid); endproc(pid); 这会导致锁再无法释放（也可以使用将持有的锁全部释放的语义，但是觉得不好。）。
 		\inferrule[EndProc-Locked]
-		{Unblocked(pid, \sigma)}  % TODO: 可以增加语义让所有资源释放
-		{(\textbf{endproc}(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(ParRequest(pid\rightsquigarrow \perp)))}
+		{Unblocked(pid, \sigma)\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'\not=\perp}  
+		{(\textbf{endproc}(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(LockHost(l'\rightsquigarrow pid), ParRequest(pid\rightsquigarrow \perp)))}
 		$
 
 		\kspace
-		$
+		$ % 从普通状态正常结束，什么都不用动。
 		\inferrule[EndProc-UnLocked]
-		{Unblocked(pid, \sigma)}  % TODO: 可以增加语义让所有资源释放
-		{(\textbf{endproc}(pid), \sigma) \longrightarrow (\textbf{skip}, \sigma(ParRequest(pid\rightsquigarrow \perp)))}
+		{Unblocked(pid, \sigma)\;\;\;\textbf{let}\; l' = \sigma.ParRequest(pid).\;l'=\perp}  
+		{(\textbf{endproc}(pid), \sigma) \longrightarrow (\textbf{skip},\sigma))}
 		$
 
 
