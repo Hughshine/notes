@@ -12,7 +12,7 @@
 
 对这个双射函数$f$性质的形式化描述：
 
-赋值（V）：For any proposition letter $p \in P:$ $p\in V_M(w)\iff p\in V_N((f(w)))$
+赋值（V）：For any proposition letter $p \in P:$ $p\in V_M(w)\iff p\in V_N(f(w))$
 
 可及关系（R）：For all w, w' $\in$ W_M: (w, w') $\in$ R_M $\iff$ $(f(w), f(w'))\in R_N$
 
@@ -50,5 +50,55 @@ $N, v\vDash\Diamond\varphi$.（然后证从右向左，需要用到满射的性�
 
 ## 满射强同态
 
-只是把同态的双射改为了满射而已。
+> 满射强同态可以做相同子结构的消除。
 
+只是把同构中可及关系的双射改为了满射而已。（左至右的）单射的性质不重要。
+
+## 有界态射
+
+赋值被保持：$p\in V_{M}(w)\Leftrightarrow p\in V_N(f(w))$.
+
+
+可及关系（左至右）：For all $w, w'\in W_M$: if $(w, w')\in R_M$ then $(f(w), f(w'))\in R_N$.
+
+【对满射进一步弱化】
+
+可及关系（右至左）：For all $w\in W_M$: if $(f(w), v')\in R_N$ for some $v' \in W_N$ then there is a $w' \in W_M$ such that $f(w') = v'$ and $(w, w')\in R_M$.
+
+值得注意的是，这里我们讨论的是“模态逻辑在点模型上的区分能力”，而映射是对完整论域的映射——很多和这个点模型完全没关系的世界，其实想怎么映射都可以的！有界态射便是在做这样一个尝试，把视角收回到点世界本身。
+
+右至左的可及关系，就是为了从$f(w)=v$，且$(v, v')\in R_N$，得到存在$(w, w')\in R_M$.
+
+（我目前的看法）“在两个宇宙中，两个有关系的（被函数f联系的）点世界能看到的可能世界是一样的。”，可以忽略处于W世界中的点的后面的世界。——与bisimulation有什么区别（不能杂糅“单射”和“双射”）？
+
+## Bisimulation
+
+使用relation定义。relation中的每个二元组$(w, v)$，满足：
+
+赋值一致：For any $p\in P$: $p\in V_M(w)\Leftrightarrow p\in V_N(v).$
+
+可及关系（左至右）：if $w R_M w'$ then there exists a $v'\in W_N$ such that $v R_N v'$ and $w'Zv'$.
+
+可及关系（右至左）：if $v R_N v'$ then there exists a $w'\in W_M$ such that $wR_M w'$ and $w'Zv'$.
+
+作为关系，也就是说一些世界、relation可以不被映射（但是如果要是映射了，就要把相关的都映射过去），或者（将某一个世界、关系）映射为很多个。
+
+Bisimilar: $(M, w)\underline{\leftrightarrow}(N, v)$: 两个模型间存在bisimulation Z，且$(w, v)\in Z$.（可以“杂糅单射和双射”。）
+
+> a bisimulation Z is total: 某个模型中的每个世界都在Z中出现。
+
+### bisimilarity的一些特点
+
+1. 某个模型和其自身的bisimulation，不是等价关系（或者说是“划分”更好？【不清楚】）（不能将一些可能世界根据某种等价性联系到一起）。它甚至可以考察某个模型的某个，和这个模型另一个局部的关系，完全和等价关系不沾边。
+
+2. （某两个模型间的）bisimulation对并（union）封闭，所有bisimulations的union，是greatest bisimulation.【相当于把有关联的分支不断叠加起来】（注意，这一点是很重要的：我们探讨两个模型的bisimulation时，是探讨最大bisimulation的一个子集）
+
+> 交集，Intersection
+
+3. Bisimilarity 是点模型间的等价关系。【自反，对称，传递】
+
+4. Bisimilarity within models $\{(w,v)\;|\;M,w \underline{\leftrightarrow} N,v\}$ 可以被看作最大bisimulation（任意两个点世界若可以有bisimilarity关系，就放入这个集合中）. 如果（$N = M$），它可以被视为M上的等价关系。
+
+In practice，我们经常用bisimulation talk about bisimilarity.
+
+两个模型间具有bisimulation，不意味着任意模型中任意可能世界，在另一个模型中都有对应的点。（对点世界的操作，保持“bisimularity”，意味着之前有关系、之后还是有，之前没有、之后也没有）【TODO】

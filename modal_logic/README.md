@@ -6,3 +6,5 @@ software foundation, logical foundation, 配合数理逻辑
 模态逻辑课上
 
 看论文
+
+先达到基本要求QAQ
