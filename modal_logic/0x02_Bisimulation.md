@@ -61,7 +61,7 @@ $N, v\vDash\Diamond\varphi$.（然后证从右向左，需要用到满射的性�
 
 可及关系（左至右）：For all $w, w'\in W_M$: if $(w, w')\in R_M$ then $(f(w), f(w'))\in R_N$.
 
-【对满射进一步弱化】
+【对满射进一步弱化】弱化了什么：可及条件约束，是希望通过v'找到f^{-1}(v') = w'. 但并不是所有v'都需要，比如没有前驱的结点就不必映射。【因而不需要满射】
 
 可及关系（右至左）：For all $w\in W_M$: if $(f(w), v')\in R_N$ for some $v' \in W_N$ then there is a $w' \in W_M$ such that $f(w') = v'$ and $(w, w')\in R_M$.
 
