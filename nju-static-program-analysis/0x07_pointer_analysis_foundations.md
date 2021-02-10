@@ -40,3 +40,22 @@ Propagate(n, pts): 是沿着指针图propagate 指针指向的objects集合的�
 
 ## Pointer Analysis with Methods calls
 
+pointer analysis就是为了做更准确的call graph的. 构建过程是on-the-fly.
+
+也就是，对于call statement，我们也有一个rule.
+
+它做这样的事情：设置函数形参、返回对象和`this`的可能对象集合，增加需求的PFG Edge(实参->形参，ret->r). 注意的是，没有边指向`this`, 因为没有this=x这种隐藏语义，我们会通过dispatch(x.k)找到相应函数的this，父级类，不会有孩子的类的可能对象。
+
+![](./pics/07-03.png)
+
+指针分析与call graph construction也是彼此依赖的，指针分析只分析call graph关于main的连通子图。
+
+此时，原有的指针分析算法有被拓展：需要逐步分析更多的method（stmts），增量式. 
+
+`ProcessCall(x, oi)`做的事情：传入的参数x多了一个可能指向的对象oi，所有的关于x的调用，为了重建call graph，关于x的方法调用都要update、增量分析一次。
+1. 首先找到实际调用的函数`m`
+2. 根据call rule设计算法：处理m_this（放入worklist等待propagate），指针图中，增加实参到形参的边，返回值的边。CG中增加cs到该函数的边（只这一部分关于CG）。同时被调用的函数要考虑是否要被继续分析，加入worklist.
+
+![](./pics/07-04.png)
+
+> 真正的深入理解，需要做好实验..
