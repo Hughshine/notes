@@ -34,7 +34,7 @@ image finite model 是 m-saturated models的子集。
 
 m-sat也是H-M model class. 【是最大的H-M models吗？】【是不是不是... 好像没有说。】
 
-证明：和image-finite模型类上的证明类似，我们想要证明在m-sat模型类上，模态等价关系可以推出bisimulation. 对于模态等值的(w, v)，赋值维持仍然是好证的，证明关系维持（如果w -> w'，There is a v' 使得 v -> v'，且w' 与 v'模态等值），我们仍然反证，假设不能维持，收集v的每一个后继中特殊的$\varphi_{w', v'}$，它在M, w'上为震、在N, v'上为假。收集到$\Sigma$中。
+证明：和image-finite模型类上的证明类似，我们想要证明在m-sat模型类上，模态等价关系可以推出bisimulation. 对于模态等值的(w, v)，赋值维持仍然是好证的，证明关系维持（如果w -> w'，There is a v' 使得 v -> v'，且w' 与 v'模态等值），我们仍然反证，假设不能维持，收集v的每一个后继中特殊的$\varphi_{w', v'}$，它在M, w'上为真、在N, v'上为假。收集到$\Sigma$中。
 
 因为N是m-sat的，我们可以找到一个$\Sigma$的有限子集$\Sigma'$，在v上的任意后继都不满足。此时，$\Diamond\wedge\Sigma'$在M, w为真、在N, v为假，这与两者模态等值的前提矛盾。
 
