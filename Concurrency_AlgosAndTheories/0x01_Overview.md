@@ -257,3 +257,11 @@ liveness: the properties that cannot be checked on finite executions. (And they 
 4. Deadlock freedom: liveness. 有一些进程一直在进展。 【globally，关注总体视角，不关心每一个线程的情况】。虽然也可以叙述为“不是所有的线程会同时get stuck”，但它需要在任意execution上都要验证，在有限的execution上get stuck或未get stuck，与无限的execution get stuck or not 无关。
 
 starvation-freedom 是强过 deadlock-freedom的。
+
+## 2021 Updated
+
+看待一个并发程序：并发对象(concurrent objects) + their clients
+
+设计一个新的并发算法是难的，课程中要做的是理解已有的并发算法，把握其正确性的直觉，进而理解并发背后的数学特点，在自己写并发程序时可以很好地利用这些并发算法，写出来好的concurrent objects。并了解并发的限度（并发可计算性）。—— 达到“并发算法也就那么回事”的程度。
+
+弱内存模型是有难度的，这门课在介绍高级语言的memory model后，介绍的并发对象都是在SC model上。
