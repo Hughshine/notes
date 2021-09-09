@@ -14,8 +14,7 @@ $$
 
 Generalized集合符号，Generalized Unions/Intersections of Sets.
 
-不会证明呀.. $\exists$要怎么建立和$or$的关系. 是否可以destruct $\{A, B\}$
-
+> $A \cup B = \bigcup \{A, B\}$还是比较好证明的。
 
 $$
 \bigcup_{i=m}^{n} S(i)  \\
@@ -47,7 +46,7 @@ $$
 2. id是composition的左右“幺元”
 3. composition与逆的关系
 4. 与空关系compose，得到空
-5. $dom(\rho) = \emptyset \Leftrightarrow \rho = \emptyset$. 问题：$dom$ 换成 $ran$ 也成立吗？
+5. $dom(\rho) = \emptyset \Leftrightarrow \rho = \emptyset$. $dom$ 换成 $ran$ 也成立。
    
 自反 + 对称 + 传递 = 等价
 
@@ -61,7 +60,7 @@ $(g\circ f)\,x = g(f\;x)$
 
 functions denoted by typed lambda expressions: $\lambda x \in S.E$ denotes the function f with domain S such that $f(x) = E$ for all $x \in S$. 匿名函数.
 
-variation of a functions: 让函数在输入x下的值变为n，x可能不在原本f的定义域下(此时相当于定义域扩大了一项).
+variation of a functions: 让函数在输入x下的值变为n，x可能不在原本f的定义域下(此时相当于定义域扩大了一项).（单点修改）。
 
 $$
 
@@ -93,7 +92,7 @@ $$
 
 $$
 
-$\sqcap\theta$中，$\theta$是一个函数，因变量是一个set.
+$\sqcap\theta$中，$\theta$是一个函数，因变量是一个set（$\theta$的返回值必须是一个集合。）.
 
 $$
 
@@ -105,17 +104,19 @@ $$
 
 ![example-01](./pics/0x03-01.png)
 
-$\sqcap \emptyset = \{\emptyset\}.$ $\emptyset$也是函数（函数就是一个特殊的关系，包含一个集合的pair），只不过这个集合不包含任何pair.
+$\sqcap \emptyset = \{\emptyset\}.$ $\emptyset$也是函数（函数就是一个特殊的关系，包含一个集合的pair），只不过这个集合不包含任何pair.（特殊记忆，指标集为空，也就是无映射，得到的可能集合也就有一个空集）
 
-If $\exists i\in dom(\theta).\; \theta\;i = \emptyset$, then $\sqcap\theta = \emptyset$. 当我们记住$\sqcap$是笛卡尔积的拓展，这一个Example是比较容易理解的（笛卡尔积连乘时，中间任何一个为空，结果为空集）。这就要求，$\theta$的输入必须都有意义。
+If $\exists i\in dom(\theta).\; \theta\;i = \emptyset$, then $\sqcap\theta = \emptyset$. 当我们记住$\sqcap$是笛卡尔积的拓展，这一个Example是比较容易理解的（笛卡尔积连乘时，中间任何一个为空，结果为空集）。
 
-> 这个$\theta$的意义还不是很清晰：为什么要构造这样一种表示？
+> $\theta$的意义：规定指标集的每一项所处的集合。至于对$\theta$做product还是sum（下一小节），跟$theta$的含义没关系，它们是基于$\theta$信息做不同的运算，一个是取出来所有二元组（point-wise），一个是取出来一组组的函数（indexset-wise）。
 
-Exponentiation: 当E与i无关，它就是$dom(\theta)$到E的所有函数！注意，T作为指数，含义是做T次“笛卡尔积”，每一次笛卡尔积引入一个作用域点. 或者解读为，将T中的每个点都映射到S中.
+Exponentiation: 当E与i无关（指标集每一项对应的集合相同），它就是$dom(\theta)$到E的所有函数！注意，T作为指数，含义是做T次“笛卡尔积”，每一次笛卡尔积引入一个作用域点. 或者解读为，将T中的每个点都映射到S中，的所有映射可能.
+
+> 意思为，以T作为指标集，每一个指标对应集合S中的一个元素，每一种“指标到元素的映射”函数都是$S^T$的一个元素，也相当于$S \times ... \times S$ T次。
 
 ![](./pics/0x03-02.png)
 
-$2^S$ 因而可以表示超集$\mathcal{P}(S)$.
+$2^S$ 因而可以表示幂集$\mathcal{P}(S)$.
 
 ## Sums (or Disjoint Unions) 不交并
 
@@ -129,9 +130,9 @@ $A + B =\{(i,x)\;|\;i=0\;and\;x\in A,\; or \; i = 1 \; and \; x \in B\}$
 
 ![](./pics/0x03-03.png)
 
-$\Sigma \empty = \empty.$
+$\Sigma \empty = \empty.$（空集做并还是空）
 
-If $\forall i \in dom(\theta).\;\theta\;i=\empty, then\; \Sigma\theta = \empty.$ 
+If $\forall i \in dom(\theta).\;\theta\;i=\empty, then\; \Sigma\theta = \empty.$ （不交并，每一个target集合都是空，结果才是空集）
 
 不交并和笛卡尔积的关系更简单：若S(x)与x无关，
 
@@ -142,3 +143,6 @@ $$
 = (T\times S)
 
 $$
+
+仍然是不交并，但是一个集合S做T次不交并，看起来没什么意义。但这里T有了自己的含义、不再只作为一个指标集了。
+本质上，这表示了$T\times S$，也就是指标集到目标集的笛卡尔积。
