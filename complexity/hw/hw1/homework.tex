@@ -1,0 +1,106 @@
+\documentclass[11pt,largemargins]{homework}
+
+
+\newcommand{\hwname}{李煦阳 DZ21330015}
+\newcommand{\hwemail}{njulixuy@163.com}
+\newcommand{\hwtype}{作业1}
+\newcommand{\hwnum}{}
+\newcommand{\hwclass}{计算复杂性}
+\newcommand{\hwlecture}{}
+\newcommand{\hwsection}{}
+\renewcommand{\qed}{$\hfill\blacksquare$}
+
+% This is just used to generate filler content. You don't need it in an actual
+% homework!
+\usepackage{lipsum}
+\usepackage{ctex}
+
+\begin{document}
+\maketitle
+
+\question*{2.8}
+
+\begin{alphaparts}
+  \questionpart
+  要证明所有的\textbf{NP}问题（$L\in \textbf{NP}$）都可以规约至停机问题。\newline
+  已知$\forall L\in \textbf{NP}.\;\exists M,p.\;\forall x.\;x\in L \Leftrightarrow \exists u\in \{0,1\}^{p(|x|)}.\;M(x,u)=1.$\newline
+  令规约函数$f(x) = \langle\langle\alpha\rangle, \langle\beta, \theta, x\rangle\rangle$，其中$M_\beta = M$, $\theta$为p的编码，$M_\alpha$重复遍历$u\in\{0,1\}^{p|x|}$，在$M_{\beta}(x, u) = 1$时停机，否则不停机。易知其复杂度为常数，是一个双射函数。\\
+  基于$M$构造\texttt{HALT}问题：
+  输入为$\langle\langle\alpha\rangle,\langle\beta, \theta, x\rangle\rangle$， 其对应的语言为$L'$\\
+  现证$x\in{L}\Leftrightarrow f(x)\in {L'}$.
+  \begin{enumerate}
+    \item $x\in L\Rightarrow f(x)\in L'$\\
+          由构造$L'$的方式可知，对于$x\in L$，$f(x)$在\texttt{HALT}上会停机，所以$f(x)\in L'$。
+    \item $f(x)\in L'\Rightarrow x\in L$\\ 
+          反证，若存在$f(x)\in L'$且$x\not\in L$，则$x$在构造的图灵机上不会停机，所以\texttt{HALT}$(f(x))$不为$0$，所以$f(x)\not\in L'$
+  \end{enumerate}\qed
+  \questionpart
+  \texttt{HALT}问题不是\textbf{NP}问题。\\
+  易知\texttt{HALT}问题是不可判定问题（并不存在一种算法可以描述\texttt{HALT}问题）（将\texttt{HALT}问题带入自身可证）。只需证所有\textbf{NP}问题都是可判定的（即可以找到一个通用算法），便可说明\texttt{HALT}不是\textbf{NP}。
+
+  对于每个\textbf{NP}问题，已知$M$，\textbf{P}，对于一个输入$x$，我们可以对解空间进行$EXP(p(|x|)$次枚举寻找certificate，并在多项式时间内演算每个可能解的真假（总复杂度为$EXP(p(|x|))$），所以\textbf{NP}是可判定的。
+  
+  \qed
+\end{alphaparts}
+
+\question*{2.15}
+\begin{alphaparts}
+  \questionpart 证明\texttt{CLIQUE}问题（某图的$K$个顶点的全连接子图是否存在问题）是\textbf{NPC}的，
+  只需证独立集问题与\texttt{CLIQUE}问题可以相互规约。
+  
+  对于$\texttt{INDSET}(V,E,K)$，构造$\texttt{CLIQUE}(V,\overline{E},K)$，其中$\overline{E} = \{(v_1, v_2)\;|\; (v_1, v_2)\not\in E\}$. 规约函数显然是多项式时间的。正确性在于，连接与独立（不连接）是显然对偶的。
+  
+  类似地，\texttt{CLIQUE}问题也可规约成\texttt{INDSET}问题。所以\texttt{CLIQUE}是\textbf{NPC}的。
+  \qed
+  \questionpart 证明顶点覆盖问题（某图是否存在大小为$K$的顶点子集，使得图中的每一条边至少有一个顶点落于其中）是\textbf{NPC}的。
+  只需证明独立集问题可以与顶点覆盖问题相互规约。
+
+  首先证明顶点覆盖$\texttt{VC}(V,E,K)$问题可以规约至独立集问题$\texttt{INDSET}(V,$ $E,|V|-K)$。令找到的独立集为$S$（可以存在多于$|V|-K$大小的独立集，但只取到$|V|-K$），$|S| = |V|-K$，我们证明$S'= V-S$一定是个顶点覆盖，其大小为$K$. 
+
+  假设$S'$不是顶点覆盖，那么$\exists v_1, v_2\in V-S' = S.\; (v_1, v_2)\in E$，这与$S$是独立集矛盾。
+
+  其次证明独立集问题$\texttt{INDSET}(V,E,K)$可以规约至顶点覆盖问题$VC(V,E,|V|-K)$。令找到的顶点覆盖集合为$S$，$|S|=|V|-K$，我们证明$S' = V-S$一定是独立集。
+
+  假设$S'$不是独立集，则$\exists v_1, v_2 \in V-S' = S.\; (v_1, v_2)\in E$，这意味着$S$不是顶点覆盖，矛盾。
+  \qed
+\end{alphaparts}
+
+\question*{2.23}
+证明$\textbf{P}\subseteq \textbf{NP}\cap \textbf{coNP}$.
+
+课上已证$\textbf{P}\subseteq \textbf{NP}$（构造\textbf{NP}问题，令certificate为空，于是\textbf{NP}的$M$就是\textbf{P}的$M$. 显然保证多项式时间），只需证$\textbf{P}\subseteq \textbf{coNP}$。
+
+构造方式类似，只需额外令$M'(x, u) = M(x)$即可，即忽略certificate。
+\qed 
+
+\question*{2.24}
+证明两个\textbf{coNP}的定义等价，\\即证对于$L$，$\overline{L} \in \textbf{NP} \Leftrightarrow \exists M,p.\;\forall u^{p(|x|)}.\; M(x, u) = 1$.
+
+令$L$在\textbf{NP}语言中的图灵机与多项式分别为$M'$，$p'$.
+
+已知$x\in\overline{L} \Leftrightarrow x\not\in L \Leftrightarrow \;\exists u'.\; M'(x, u')=1 $，取否可得，$x\in L \Leftrightarrow \neg \exists u'.\; M'(x, u')=1 \Leftrightarrow \forall u'.\; \texttt{flip}(M'(x, u'))=1$. 也就是说，由基于2.19定义的语言，它构造地满足2.20的定义，其中$M = flip \cdot M'$与$p = p'$.
+
+由于一直在用等价推导，反方向的证明也是类似的。
+\qed
+
+\question*{2.25}
+即证$\textbf{P} = \textbf{NP}\rightarrow \textbf{NP}=\textbf{coNP}$.
+对于$L \in \textbf{P}$, 若可以证明$\overline{L} \in \textbf{P}$，根据定义2.19（补集在NP中的语言\textbf{coNP}的），并且由于$\textbf{P} = \textbf{NP}$，那么$\textbf{NP} = \textbf{coNP}$. 下面证明$L\in \textbf{P}\rightarrow \overline{L}\in \textbf{P}$.
+
+对于$L \in \textbf{P}$，我们有图灵机$M$，$M(x) = 1\Leftrightarrow x\in L$.
+也即$M(x) = 1\Leftrightarrow x\not\in \overline{L}$，
+取否，得$\texttt{flip}(M(x)) = 1 \Leftrightarrow x\in\overline{L}$. \texttt{flip}显然不影响时间复杂度。
+也就是说，对于$\overline{L}$，可以找到多项时间的$M' = \texttt{flip}\cdot M$，使得$x\in\overline{L}\Leftrightarrow M'(x)=1$. \textbf{P}中语言的补集仍属于\textbf{P}得证，进而，$\textbf{NP}=\textbf{coNP}$得证。
+\qed
+
+\question*{2.30, Berman's Theorem}
+证明若$SAT$可以规约至一元问题$L$，那么$SAT$可以找到一种多项式时间算法（剪枝算法）。
+
+令$SAT$到$L$的多项式时间规约为$f$，公式$\varphi$有k个自由变量，长度为$n$。$\varphi$的可满足性等价于两个有$k-1$个自由变量的子公式的可满足性（将一个自由变量分别取$0$与$1$），两个子公式的长度也为$n$. 若将$k$个变量全部拆解，则$\varphi$的可满足性变为$2^k$个公式的可满足性（一个树状搜索问题）。但是借助$f$，可以在拆解过程中不断剪枝，不必计算全部$2^k$的公式的值。
+
+由于$f$是多项式时间的（设为$p(\cdot)$），那么$f(x)$的长度一定在$p(|x|)$内。在前述的问题拆解过程（每一次拆解使公式数增加1），每当公式集合达到$p(|x|)+1$，对每个公式$\varphi$求解$f(\varphi)$，根据鸽笼原理，至少有一个公式不是一元的或者与已有的一元公式重复，我们可以用线性时间（也就是多项式时间）筛去（剪枝掉）这部分重复的或者非一元的公式。最终，只需在剩余的$p(|x|)$大小的公式集合验算可满足性。
+
+但还需要说明剪枝次数也是多项式时间的。公式集中每一个公式的自由变量个数都小于等于$k$，意味着每个公式最多引发$k$次剪枝，即一共最多引发$k\cdot p(|x|)$次剪枝，$k$与$n$是多项式关系的，所以总复杂度仍是多项式时间的。
+
+\qed
+\end{document}
