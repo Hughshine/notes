@@ -4,8 +4,6 @@
 
 > 有一些经典的互斥算法（一些协议），我们在这一节研究它们，去看一些微妙的性质，以小见大。
 
-
-
 （目录）互斥问题：
 1. 形式化定义
 2. 2线程解决方案
@@ -21,9 +19,8 @@
 
 **对并发计算的推理，几乎就是对时间的推理——事情是否会同时发生，不同时间间隔是否会重叠。**
 在我们的验证过程中，没有一个全局的时间戳，只有事件发生的“顺序序列”。我们用时间去解释这个“ordering”。
-顺序并不表示“时间的数值”（我们也不会考虑时间的数值）。
+顺序并不表示“时间的数值”（我们也不会考虑时间的数值）。我们不认为有同时发生的事件。
 可以理解为，there is a notion of time but it is local and not global. 像是广义相对论中的那样。
-
 
 ### Events
 
@@ -40,6 +37,7 @@
 
 ### Thread as State machine 
 
+状态划分为两类，线程状态和系统（全局）状态。
 
 Thread State: PC, local variables.
 
@@ -47,7 +45,7 @@ System state: Object fields(shared variables), and Union of thread states.（sha
 
 Interleavings: 不同线程并不一定是独立的（对全局变量的访问）（通信）。（并不是独立的，意味着，不是任意两个线程的seq随便interleave都可以）
 
-Interval $A_0 = (a_0, a_1)$: time between events $a_0$ and $a_1$. Intervals may overlap/disjoint, （如果disjoint）有先后次序的区分，有“happen-before”关系. interval实际是某一线程状态的持续区间。
+Interval $A_0 = (a_0, a_1)$: time between events $a_0$ and $a_1$. Intervals may overlap/disjoint, （如果disjoint）若有先后次序的区分，则有“happen-before”关系. interval实际是某一线程状态的持续区间。
 
 Precedence: $A_0\rightarrow B_0$, 前者的end event在后者start event前面。
 它是非自反的，反对称的，传递的。（interval上的序是偏序，两个interval可以无法比较）
@@ -56,7 +54,8 @@ events上的序是全序（任意两个event一定可以比较）。
 
 一些事件，是重复出现的，比如在迭代语句中。我们用上标记录它。
 
-### Lock
+
+### mutual exclusion: Lock
 
 ```
 // In Java, these methods should be used in the following structured way.
@@ -71,7 +70,10 @@ try {
 
 critical section, is a block of code that can be executed by only one thread at a time.
 
-标记：$CS_i^k$：线程i的第k个critical section **execution**. 像是interval，但也是“event”，因为会被原子执行。
+标记：$CS_i^k$：线程i的第k个critical section **execution**. 像是interval，但也是“event”，因为会被原子执行。我们想要证明的是任意的CS之间一定有序的关系。
+
+Progress Property, DF, SF. 
+Safety Property, 比如ME.
 
 #### Deadlock-Freedom
 
@@ -79,9 +81,14 @@ System as a whole makes progress. Even if individuals starve.【progress globall
 
 如果一些线程call lock(), and never returns. Then other threads must complete lock() and unlock() calls infinitely often.
 
+> 与用一个（包含全部线程的）依赖环去定义死锁不同，本课程的定义方式强调的是“系统整体的进展”。
+
 #### Starvation-Freedom
 
 如果线程calls lock，It will eventually return. Individual threads make progress.【local progress，forall】
+
+
+我们在讨论锁算法的性质时，是讨论锁算法本身。用户使用锁有关接口的方式（比如重来都不调用unlock）和调度器的性质（从来不调度某个线程），都会影响系统整体的类似性质，但我们不关注，我们会假设fair scheduler，也会假设用户会正确地调用接口。
 
 ## Two thread Solutions
 
@@ -173,8 +180,11 @@ Deadlock Free: victim只有一个人，永远有进程可以progress. （我认�
 
 Starvation Free: 要思考一个线程是否有可能不断放锁取锁成功。假设一个人已取锁，另一个人在等，第一个人放锁后重新取锁，看见了另一个人在等，会让它先做，使等待的线程先运行，所以没有starvation。【让步策略是后面的让前面的——来到的人默认等待，使等待者先行。】
 
+> starvation发生的情景：其他线程的等待条件没有考虑足够已经在前面等待的（表现为已经走过doorway的）线程，会抢先它进行（并且会发生无限次）。
+
 同时需要一个排队策略（每个线程知道其他线程的意图，有意图的人在一个集合中），和一个好的访问策略（控制有意图的人的访问顺序）。
 
+> 读和写的分离，意味着线程无法唯一地表达意愿。因而必须配合意愿的排队（比如撤回等）。
 
 ## n-threads mutual exclusion protocols
 
@@ -183,7 +193,7 @@ Starvation Free: 要思考一个线程是否有可能不断放锁取锁成功。
 
 ### Filter Lock
 
-Filter lock 是直接的 paterson lock 直接的拓展，对于n个线程，它设定了一个n层的等待队列，每一层可以最多锁一个线程（有一个victim）。每有一个后来者，都会将已有线程向前推进（已有线程会发现自己不是victime）。当且前面（每一层）没有其他线程，本线程主动前进。【最后这一点，我认为可以改为只看前面一层没有别的线程，就向前进】
+Filter lock 是直接的 paterson lock 直接的拓展，对于n个线程，它设定了一个n层的等待队列，每一层可以最多锁一个线程（有一个victim）。每有一个后来者会自然等待，并将已有线程向前推进（已有线程再次执行时会发现自己不是victim）。当且前面（每一层）没有其他线程，本线程主动前进。【最后这一点，我认为可以改为只看前面一层没有别的线程，就向前进】
 
 
 对于n个线程
@@ -202,12 +212,12 @@ class Filter implements Lock {
   }}
 ```
 
-Mutual exclusion 的证明：（归纳式）Level L 最多有n-L个线程通过。
+Mutual exclusion 的证明：（归纳式）Level L 最多有n-L个线程通过。（是从外推到临界区）
 basic: trivial
-induction step: 归纳前提，l-1 层有最多 n-l+1线程通过；
-假设都进入了，会有一个线程A，最后写了victim[L]，我们想说明它的停等条件一定是true（也就是一定存在其他线程level[k]>=L）。
+induction step: 归纳前提，l-1 层有最多 n-l+1线程通过，那么L有n-l个线程通过；
+反证，假设（n-l+1个线程）都进入了L层，会有一个线程A，最后写了victim[L]，我们想说明它的停等条件一定是true（也就是一定存在其他线程level[k]>=L）。【最后一个会等着，因为没有别人解除它的victim】
 ```
-每个线程都先写level=L，再写victim；A最后写victim，也就意味着其他线程都写完了level=L；写完victim后，A才读停等条件，意味着A一定读到了其他线程写的level=L。所以停等条件一定为真。
+每个线程都先写level=L，再写victim；A最后写victim，也就意味着其他线程都写完了level=L；写完victim后，A才读停等条件，意味着A一定读到了其他线程写的level=L（代码中，每个线程先写level再写victim）。所以停等条件一定为真。
 【形式化证明用三个 trace】
 ```
 
@@ -235,4 +245,40 @@ starvation-free证明：
 0-Bounded Waiting就是fairness。
 
 对于filter lock，它不会starve（前证），但对于任意r，它都不是r-bounded。
-【TODO】
+fairness和starvation主要取决于lock的等待条件，看是否足够考虑了各线程完成doorway的顺序。
+Filter不是r-bounded，主要原因是其他线程不会等它（后来的线程只是给了他前进的权力，但是不会等待它前进）。但它是starvation free的，因为其他线程重复进入临界区后，本线程一定可以前进（victim为0了） -- 有点类似考虑scheduler的性质了（考虑锁算法和scheduler的关系）。如果是r-bounded，那么如果scheduler不是fair的，可能会导致锁算法会停住。
+
+> filter lock 不控制fairness
+
+### Bakery Algorithm
+
+排队取号算法。FCFS，拿到一个number，当所有小的number都完成了，这个线程进入临界区。
+
+lock：这本书唯一一个不使用原子操作的算法。
+
+```java
+public void lock() {
+  flag[i] = true;
+  label[i] = max(label[0...n-1]) + 1; // 有可能不同线程取到了相同的号，这种情况以线程号排队
+  while(\exists k, flag[k] && (label[i], i) > (label[k], k));
+}
+public void unlock() {
+  flag[i] = false;
+}
+```
+
+对于每个线程，它取到的label一定是递增的。注意到，取新号码之前就设置了flag，这意味着它的旧label此时是生效的，当它没有取完自己的label时，其他线程即使取完了label，也不会开始。
+
+No Deadlock: 总会有线程进入临界区，因为总会有label最小的线程。
+
+FCFS: 
+1. D_A -> D_B 意味着 A 的label一定更小。B此时看B的等待条件，它一定能看见flag[A]（根据程序代码）。两者共同意味着CS_A -> CS_B.
+
+ME: 假设AB都在CS中，A有更小的label。思考B进入CS时，它或者看到flag[A] = false, 或者看到A的序号比B大，B的label在CS内不会变，所以后者无法成立，于是思考前者。
+
+> Labeling B -> read B flag[A] -> write A flag[A] -> Labeling A.
+> B的代码顺序；B为了读到flag[A]-false,需要在A写flag true之前；而A在write flag后才写label，这意味着B label在A label之前，也就是B label比A label小。矛盾。
+
+溢出问题：64位机器可以不关心。不过也可以设计一个循环算法（因为线程数为n），复用已用过的label。但是算法会变得复杂，课内暂时不关心（wait-free + concurrency 会变得难）。
+
+### 最少多少个bit才能做n线程的同步：一些有难度的证明
