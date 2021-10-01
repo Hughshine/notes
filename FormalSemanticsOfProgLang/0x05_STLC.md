@@ -1,9 +1,9 @@
 # 0x05 Untyped Lambda Calculus
 
-在LC的notation基础上，增加了类型标记，并复杂化了reduction rule. 也就是type system.
+在LC的notation基础上，增加了类型标记，并复杂化了reduction rule. 也就是type system.（比如阻止了 non-terminate term -> 无法定型）
 
 why types:
-1. Well-Typed programs will not go wrong. 可以保证never reach a meaningless(depend on semantics) state. (types errors and others run-time errors).
+1. Well-Typed programs will not go wrong. 可以保证never reach a meaningless(depend on semantics) state. (types errors and others run-time errors). （静态 -> 动态语义（go wrong 取决于语义））
 2.  A Well-Typed terms in STLC always terminate.
 3.  Typed programs are easier to analyze and optimize.
 
@@ -15,6 +15,11 @@ formal type systems, a precise specification of the type checker, and allows for
 
 ### Simple
 
+```
+|- : in-system derivation
+|= : semantics
+```
+
 1. Typing rules.
 2. Type safety, soundness of typing rules.
 
@@ -22,22 +27,28 @@ formal type systems, a precise specification of the type checker, and allows for
 > 
 > 设计struct的类型、union的类型
 
+需要context，用来跟踪free var的类型
+
 Typeing rules:
 
 ![](./pics/0x05-01.png)
 
 sound & completeness : sound, no false negatives; complete, no false positives. 没有办法同时保证（判断）一个程序是sound且complete的(undecidable). Choose soundness, try to reduce false positives in practice.
 
-什么是soundness：the reduction of a well-typed term, either diverges, or terminates in a value of the expected type. Followed by:  
+什么是soundness：the reduction of a well-typed term, either diverges, or terminates in a value of the expected type. Followed by:  (证明type safety时需要以下两点)
 
 1. Preservation: well-typed terms reduce only to well-typed terms of the same type.
 2. Progress: a well-typed term is either a value or can be reduced.
 
+> 证明要看
+
 ![](./pics/0x05-02.png)
 
-什么情况体现了not complete? $x:\sigma\vdash(x(\lambda y.y))(x\;3):\tau$ 被reject. Reject的原因在于，我们无法让x同时符合两个类型（因为 x \lambda, 与 x 3）. 但是此时让x是一种更general的类型（template，使得$\lambda z.z$)，却可以合法.
+什么情况体现了not complete? $x:\sigma\vdash(x(\lambda y.y))(x\;3):\tau$ 被reject. Reject的原因在于，我们无法让x同时符合两个类型（因为 x \lambda, 与 x 3）（x被运用在函数上，又运行在整数上）. 但是此时让x是一种更general的类型（template，使得$\lambda z.z$)，却可以合法.
 
 Well-typed terms in STLC always terminate. (strong normalization theorem). $(\lambda x.x\;x)(\lambda x.x\;x)$ 不合法，cannot be assigned a type.
+
+> 定义了什么样子的term是Values这件事确定了"go wrong"的执行
 
 ### More (基本类型系统之上的拓展)
 

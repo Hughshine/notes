@@ -10,6 +10,8 @@
 
 我们的算法最后找到的解，就是$X = F(X)$的解。它被称为不动点（fixed point）. 它是唯一的吗？
 
+> 将所有结点的结果放在一起，看作是格的一个实例。（虽然我们同时考虑了In/Out，但实际上只跟踪一个，forward跟踪out，inward跟踪in）
+
 ## Math Preliminaries
 
 ### 偏序集，Poset
@@ -31,6 +33,8 @@ greatest lower bound(glb/meet) of S: 最大的lower bound，$\sqcap S$.
 
 如果偏序集中任意的两个元素，都具有lub/glb，那么我们称这个偏序集为格。
 
+> 什么样子的（有限）偏序集不是格？大概就是有一个顶端和底端
+
 semilattice， 半格：join semilattice, 任意两个元素都有lub; meet semilattice, 任意两个元素都有glb.
 
 complete lattice, 任意的子集（包含全集、任意无穷子集！），都存在lub/glb. 
@@ -46,7 +50,7 @@ Dataflow analysis framework: $(D,L,F)$ consists of
 
 1. D: direction of dataflow, forwards or backwards.
 2. L: a lattice including domain of the values $V$ and a meet $\sqcap$ or a join $\sqcup$. （根据是forwards or backwards，我们需要定义如何整合多个输入或多个输出）
-3. F: a faimly of transfer functions from V to V. (每一个BB都有一个transfer function)
+3. F: a faimly of transfer functions from V to V. (每一个BB都有一个transfer function，如果每一个tfunc都是单调的，整体就是单调的)
 
 回归问题：
 

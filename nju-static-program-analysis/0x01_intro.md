@@ -1,6 +1,6 @@
 # 绪论
 
-程序语言进一步的分支 - 理论/环境/应用
+程序语言进一步的分支 - 理论/运行时环境/应用
 
 理论：语言设计、类型系统、语义与逻辑...
 
@@ -8,7 +8,7 @@
 
 应用：程序分析、验证、合成
 
-程序变得越来越大、越来越复杂，如何保证reliability, security, promises of large-scale / complex programs.
+（相对来说，语言没怎么变，包括theory，environment）程序变得越来越大、越来越复杂，如何保证reliability, security, promises of large-scale / complex programs，越来越重要，编程语言应用相关部分被强调.
 
 - memory相关/安全相关/编译器优化（dead code elimination, code motion）/程序理解（butterfly, call hierarchy, type indication...）
 
@@ -31,4 +31,3 @@ Abstraction: Concrete field state -> Anstract field state.
 Over-approximation: Transfer Functions. Concrete state transition -> Abstract state transition. Define how to evaluate different program statements on abstract values. 【undefined/unknown】. （当然会丢失信息啦）
 
 Over-approximation: Control Flow.
-

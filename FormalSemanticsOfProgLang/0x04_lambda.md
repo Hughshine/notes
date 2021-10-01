@@ -16,9 +16,42 @@
 4. 替换（substitution），注意有时需要rename. 
 5. $\beta$-reduction. A lambda term without any $\beta$-redexes(reductive expression, $(\lambda x.M)N$) is said to be in $\beta$-normal form. 要替换. 概念：evaluates to (normal form). Not every term evaluates to somthing(因为无线递归结构). 注意，TODO，课件上的reduction与evaluation有区别. $\beta$-equivalence.
 
+> lambda calculus 的四条reduction rules，一条beta rule是最核心的（application 形式，其中func已经暴露了一个参数，不能是一个变量或者一个带括号的复杂term），另外三条rule是用来运用beta rule的，当目前的term是一个application时，可以任意在func/param运用beta reduction（因而这里有语义的歧义）；当目前的term是一个abstraction时，可以让函数体运用beta reduction。
+
+#### beta normal form
+
+beta redex(reducible expression(term)), a term of the form ($(\lambda x.M)\;N$), 也就是application形式的term。
+
+beta normal form: term containing no beta-redex，无法在调用beta reduction rule了！
+
+
+##### Formalizing Confluence
+
+合流性（Confluence），Church-Rosser Property: 以任何顺序（因为语义是歧义的）去规约lambda term，如果能得到最终结果（可能diverge），那么结果一致（意味着唯一）。
+
+1. step: $M\rightarrow^* M'$. first define $\rightarrow^k$ inductively.
+   1. $M\rightarrow^0 M'$ always holds
+   2. $M\rightarrow^{k+1} M'::= \exists M''.M\rightarrow M'' \wedge M'' \rightarrow^k M';$ 可以前向，可以后向
+   3. $M\rightarrow^* M' ::= \exists k.\; M\rightarrow^k M$.
+2. confluence theorem: $\forall M.\;(\exists M_1, M_2.\;M\rightarrow^*M_1 \wedge M\rightarrow^*M_2)\longrightarrow(\exists M'. \;M_1\rightarrow^*M' \wedge M_2\rightarrow^*M')$.
+
+> confluence theorem的实际定义的视角看起来有一点不同，它把non-termination也直接包含考虑了，它在说，如果选择了两条策略，无论如何，两条策略都能找到一个交汇点（交汇点不一定是normal form）。是一个很强的定理。
+> 
+> 正确性源于reduce一侧时没有丢失或影响另一侧的信息
+
+> non-terminating 可以通过类型检查找到（？）
+> 
+> 一些term没有normal term，一些term有两者。
+
+reduction strategies: 
+1. normal order, leftmost, outermost (定理：如果能找到，按照normal order reduce，总能找到normal form)（从外向内会完全利用语义信息（类型信息）），接近call-by-name，先将每个参数代入，再evaluate
+2. applicative order, leftmost, innermost, 好处是步数可能变少（会复用重复reduce）。不过有大量的argument没有被使用，applicative order效率会低。接近call-by-value，算一个参数的值，带入这个参数，再考虑下一个参数
+
 ### Programming in untyped lambda calculus
 
-1. 表示Bool与基本运算/自然数/Pair/Tuple/List/trees.
+> 关于bool运算的encoding，可以从数据流的角度去理解其正确性（not/and/or/if/not'），很有趣。可以写个小文章。
+
+1. 表示Bool与基本运算/自然数/Pair/Tuple/List/trees. Encoding可以有多种定义方式。
 2. 基于List之上可以表示新的自然数，比直接基于lambda-calculi的更有效（$\beta$-reduction次数更小）
 3. 解Recursive Function：Fixpoints. *In the untyped lambda calculus, every term F has a fixpoint*, 所以可以解递归方程.
 
@@ -29,9 +62,15 @@ Reduction Strategy & Evalutation Stratygy
 1. Reduction Strategies: normal-order, 最左侧，最外侧的redex先reduce. 这个方式一定会找到normal form, if exists. (走必须经过的路径) ；Applicative-order reduction, 最左侧，最内部的redex优先，此时是可能陷入死循环的.
 2. Evalutation Stratygies: 什么时候 evaluate the arguments of a function call, and what kind of value to pass to the function. 
 
-> 课件上强调reduction与evaluation的区别，此处没有理解
+> **课件上强调reduction与evaluation的区别，就是在是否要规约函数体内部而已。**（感觉就是两者的场景不一样，evaluation偏向于更复杂的编程语言的场景，不会在函数内部进行evaluate）
 
 20.8.11记：Reduction 与 Evaluation的区别应该就是：reduction是一直reduce到normal form为止，normal form相当于原先函数的最简化，allow optimizations, 可能会遇到无限的场景，最后可能得到一个最简单的lambda abstraction（所谓的“函数”）, 可能只是一个变量（不再有“栈”）。Evaluation是到一个lambda abstraction($\lambda x.M$)就停下（感觉可以理解为，运行时最终还是在栈上...），only evaluate closed terms(no free variables) ，因为嵌套地进行evaluate的是“被固定的参数”。
+
+> normal-order evaluation也可能不终止。避免了少部分。 
+
+normal-order evaluation rule 用了一种大步的定义（没有办法建立evaluate k步的含义，直接是0/n步直接到结果的含义；没有办法建立partial evaluation） (可以通过调整rules的定义，直接限制reduction order)。也可以用小步的形式（少了两条rule，一条是因为到canonical form停止，一条是因为normal order的限制；两种定义方式是否可以是同样的效果，我认为后者可以表示前者；大步可以增加一个递归次数的表情，但是处理无限的情况可能会出现问题）。
+
+eager evaluation rules: 当参数是canonical form，才做beta reduction. 避免带入后重复的evaluation. （感觉这个应该就是call by value...）。可以写big step/small step两个版本。
 
 几个练习：Find lambda terms then represent each of the following functions.
 
@@ -78,6 +117,10 @@ $$
 ### fixpoint
 
 当我们将递归方程写成fixpoint equation形式时，我们就已经把约束全部融入这个等式$f = F\;f$之中了. 我们要求的解，就是F的fixpoint，且任何一个都可以. 也就是说，我们用任何一个combinator求解，也都可以.
+
+> fixpoint combinator: 计算一个函数的fixpoint的函数
+
+> 可以表达不动点，就可以表达递归函数
 
 解方程时，完全绕过了fixpoint的真实表达式，就是在不断反复用F规约. 每次单独遇到fixpoint，都根据$\Theta F\twoheadrightarrow F(\Theta F)$替换.即，我们无法直接reduce fixpoint到底（因为没有底），我们只能一步一步解析输入参数、并用上述等式替换，直到到达递归终点（如果函数被正确定义了的话）.
 
