@@ -2,3 +2,5 @@ ppt/*
 *.tar
 *.gz
 files/*
+*.tgz
+tex
