@@ -77,7 +77,11 @@ Dataflow analysis framework: $(D,L,F)$ consists of
 
 ## May/Must analysis, a lattice view
 
-这张图说明算法在全格上做了什么。
+这张图说明算法在全格上做了什么。最开始是“unsafe result”，逐渐向“safe result”走。correctness是如何保证的，为什么最终停止时达到了safe：transfer function和meet function是否设计“对”了 -> 需要某种证明。
+
+may/must 初始化为bottom/top 的原因是各自的“unsafe”定义不同。
+
+> 最小/最大不动点的原因，是因为meet只做了最少应该做的（比如没有直接变成1111），而transfer function也是在做最基本做的事。实际上，最终还是看transfer function和meet的定义的正确性。
 
 ![](./pics/04-04.png)
 
@@ -107,7 +111,13 @@ F: transfer function. $OUT[s] = gen\cup (IN[s]-\{(x, \_)\})$
 
 ![](./pics/04-07.png)
 
-它是不满足分配律的。（但仍然保证monotonic）
+它是不满足分配律的（两个变量可能取不同的值，但是两者之间有约束，导致和它们相关的某个变量是常量（比如分支1中a=1;b=9;分支2中a=9;b=1;汇合点c=a+b;NAC+NAC得不到Constant.））。（但仍然保证monotonic）
+
+> cp可以反向算(可以用may；不考虑了，感觉不直观)；f(x,y) = undefined 情景必须这样设置的原因，否则不保证单调性的；kill/gen和分配律的关系（为什么有关系），CP和kill/gen问题的关系。
+> 
+> 提到如何不是undefined+constant = undefined, 会出现函数不单调的问题，细节不记得了。这里在写作业时还是需要想一下。undefined意味着那个块还没走，如果以后一定会升上来，那不会影响结果；如果永远undefined，它也就应该设置成undefined，...。要再想一下。
+>
+> gen/kill意味着bit vector问题，CP的kill不是基本的kill
 
 ## 优化：Worklist algorithm
 
