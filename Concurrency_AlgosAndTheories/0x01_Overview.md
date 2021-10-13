@@ -229,7 +229,7 @@ We want to devise a protocol so that:
 
 safety: something bad will never happen.
 
-liveness: something good will happen, but we don't know when. (是不是可以理解为有限步可到达？)
+liveness: something good will happen, but we don't know when.
 
 ### For sequential programs
 
@@ -245,15 +245,17 @@ liveness property: 错误永远不会在有限次转移后出现。(也即我们
 
 换句话说：
 
-safety: the properties that can be checked on finite executions.
+safety property: the properties that can be checked on finite executions. （如果坏事发生了，一定是在有限的执行就发生了）
 
-liveness: the properties that cannot be checked on finite executions. (And they need to be checked on infinite executions).
+liveness property: the properties that cannot be checked on finite executions. (And they need to be checked on infinite executions).（坏事是关于无限的，比如“线程永远不再有机会执行”）
+
+> 注意区分safety property 和 safety 本身
 
 ### Example
 
-1. Mutual execlusion: safety. 一些不好的事情 永远不会发生。
-2. Bounded overtaking: safety. 在a想要进入critical region时，b最多进入了一次。也是不好的事情不发生。
-3. Starvation freedom: liveness. 假设B不会永远呆在critical section. 当A想要进入critical section, 它最终会进入。【locally，关注每一个线程的局部视角】
+1. Mutual exclusion: safety. 虽然我们希望永远满足mutual exclusion，但如果违背它，这个违背的执行序列是有限长度的。
+2. Bounded overtaking: safety. 在a想要进入critical region时，b最多进入了一次。
+3. Starvation freedom: liveness. 假设B不会永远呆在critical section，当A想要进入critical section, 它最终会进入。【locally，关注每一个线程的局部视角】。【“不会进入”是一个关于无限执行的性质，我们无法在有限的执行就判断一个线程永远无法再进入临界区】
 4. Deadlock freedom: liveness. 有一些进程一直在进展。 【globally，关注总体视角，不关心每一个线程的情况】。虽然也可以叙述为“不是所有的线程会同时get stuck”，但它需要在任意execution上都要验证，在有限的execution上get stuck或未get stuck，与无限的execution get stuck or not 无关。
 
 starvation-freedom 是强过 deadlock-freedom的。
