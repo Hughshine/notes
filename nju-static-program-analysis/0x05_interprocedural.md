@@ -30,7 +30,7 @@ call graph: a set of call edges from call-sites to their target methods (callees
 * 根据object的类型（pointed by o）
 * 函数签名（the identifier of a method: class type + method name + descriptor(return type + parameter types)）【要保持注意，我们是在OOPL语境下讨论的问题】【`<C: T foo(P,Q,R)>`】
 
-定义 dispatch 过程：（注意，只关注m的name and descriptor）
+定义 dispatch 过程：（注意，只关注m的name and descriptor，不关注m的“类”（这个类是静态的，dyn dispatch正是调整了它））
 
 ![](./pics/05-01.png)
 
@@ -60,6 +60,8 @@ start from entry methods(`main`),
 for each reachable method m, resolve target methods for each call site in m via CHA..... 
 repeat until no new method is discovered.
 
+> 一次图遍历
+
 ![](./pics/05-04.png)
 
 配一个example：
@@ -85,3 +87,7 @@ transfer functions: node transfer + edge transfer!
 ![](pics/05-07.png)
 
 > 还是很好理解的！注意对于virtual method, 需要meet多条return edge.
+
+edge 的指向是控制流，edge的值（转移函数）预示着数据流的分化。结点的转移表征程序的语义。在跨过程分析时，method call复制掉过程参数，并在调用返回时将承载返回值的变量数据流强行接入。
+
+edge transfer 在其他地方也可有用，比如switch可以对每个case增加edge transfer，每个case只在对应分支为确定值（对数据流的约束）时过去，“restrictTo”。
