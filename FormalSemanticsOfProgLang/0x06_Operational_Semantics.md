@@ -95,20 +95,48 @@ $\mathcal{E}$. $[\;]$暗示下一个要被分析的子节点.
 
 Redex + Evaluation contexts. 虽然说是分别考虑了local / global rule，我觉得没啥变化. 还是用“在某状态下，根据某节点和其孩子们的pattern确定下一步的执行动作”.
 
-> 2021.11: 虽然还是模式匹配，但是对context和redex两个概念进行了划分，使得语义清晰了
+> 2021.11: 虽然还是模式匹配，但是对context和redex两个概念进行了划分，使得语义清晰了 —— 配合原始的语法，定义了一个新的语法，可以将一个式子写为`E[r]`的形式（找到这棵树的E部分和r部分）.
+> 
+> redex 就是自身就可以reduce的规则，我们需要直接为它去设计local reduction rule. 对于context，它只具有一个reduction rule（如果local reduction rule与context无关），但是context的语法定义，决定了evaluation strategy.
+> 
+> 当语义和context有关时，也就需要另设计reduction rule. 实习的时候，Maciej定义的rule就是这一种，记得邮件里有讨论它的抽象机... 有些不记得了... 唔。什么时候再回顾下这个工作。
 
 就是写起来更简单了，更符合我们的理解方式.
 
+和SOS中progress与determinism的关联：
+1. exists redex => progress
+2. unique redex => determinism
+
+> 2021.11: bool计算短路与否的例子. 调整了context和redex的定义.
+> 
+> redex: program counter 
+> 
+> 优点：rule更简洁了；缺点：直接去实现它的虚拟机是比较低效的，因为每一步需要完整分解command去寻找redex（我觉得这是小步语义的通病，都需要从**完整的树**开始找到实际reduce那部分，做一个微小的reduce，停下；正常执行二进制程序时，看到的就是一堆线性的程序，不需要看完整的程序去找pc）
 ## Big-Step Semantics
 
-Big Step似乎忽略了evaluate顺序，（我认为需要“语义”支持它这么做：如果对于`e1 + e2`，evaluate的顺序很重要，那么就不能用BigStep去写）. 
+2021.11: 看似Big Step没有规定表达式的求值顺序，其实是因为没有必要（因为没有副作用）. 顺序还是可以由前提中每个子结果的状态的联系确定. 不过这个执行顺序不对用户呈现。定义出了一个abstract interpreter.
 
-Small Step 是线性结构，Big Step是树的结构；Small Step是语法树树按照准确语义规则的对语法树做遍历，的状态转移链条；树结构损失了具体的“我要执行哪个子树..”等，只想关注结果，不想关注遍历顺序. 默认就理解为：横线上面的各子树，可以并行分析，最后统一结果.
+> Determinism: 一个表达式如果求出来了两个值，两个值一样
+> 
+> Totality: 每一个表达式，在任何状态下，它都有一个值
 
-Big-Step在分析状态时有局限, 因为它不能保留中间“哪一步出现了错误”，也就是Small-Step中config的第一项.
+> 对于while loop，只能表达可终止的；没有办法区分无法终止、get stuck
+
+bigstep下的newvar规则，我觉得它是使用了最朴素的方式，大步语义看起来很不适合表达并发，这种程序不同片段会产生关联，导致大量不确定性的程序要素
+
+Small Step 是关于树的线性序列，Big Step就是一个单一树结构的执行
+
+> 2021.11: 小步语义就是很基本地，每一次只考虑粒度最小的一步。大步语义认为一棵子树的结果，就只依赖于它的子树，并且预设了终止，所以不能建模很多复杂特性。（有点类似Inductive和CoInductive）。BigStep证明东西有时更简单，因为它的规则更少.
+
+## 操作语义Sum up
+
+* 是对动态语义的具体规范
+* 抽象，只纳入想要讨论的东西（当不想考虑寄存器时，语义便不必包含它）
+* 常常不是compositional（while）
+* 是一种重要的语义，是对语言证明、推理的基础
 
 ## 以Untyped Lambda Calculus为例
 
 若直接按照ULC语法写语义，得到的rules就是non-deterministic的. 因为对于 $M,N :== M N$ 这一项，想先执行那个子树都不影响结果. 此处也能看出函数式编程的no side-effect特性，完全依赖reduce/map，没有全局状态.
 
-> 问题：什么时候可以说“Big-Step”与“Small-Step” Semantic是equivalent的？对于某个语言，的任何一棵语法树，分析结果都是相同的（都不normalize 或 最终config都一致？）。
+> 问题：什么时候可以说“Big-Step”与“Small-Step” Semantic是equivalent的？比如，对于一个term，在大步下得到的term，在小步走若干步也能走到.
