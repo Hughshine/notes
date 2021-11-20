@@ -48,9 +48,13 @@ While 的语义 借助 if 递归定义.
 
 和普通SOS是等价的，就是符号统一一点.
 
+> 2021.11: 注意到，将（无副作用的）表达式的语义视为单步，if/while的语义都有所变化（其实是变的更简单直接了）. if 的三条规则自然变成了两条，同时while的规则不再借助if
+
 ### 引入 Going wrong
 
 就是增加额外的一个configuration: abort. 并且(1)增加产生abort的基本子句状态改变，比如0/0会导致config变为abort. (2) 每一个rule 要考虑子树是否可能是坏的. 
+
+> 2021.11: 注意，go wrong 和 get stuck 的差异，前者是程序的一种行为，后者是一种执行状态（没有语义可以apply了，比如skip）. 一般会给出错程序abort语义, 而不是让它直接get stuck在那里.
 
 ### 引入 Local Variable Declaration
 
@@ -58,9 +62,15 @@ While 的语义 借助 if 递归定义.
 c ::= ... | newvar x := e in c
 ```
 
+> 错误的语义设计：`(newvar x := e in c, \sigma) --> (x := e; c; x := n(旧值), \sigma)`
+
 newvar在并行语义中会很集中考虑. 语义一定要体现局部性.
 
 ![](./pics/0x06-02.png)
+
+> 2021.11: 为了增加“局部”语义，必须考虑在configure和语义的设计中实现它，成为真的局部语义。否则该语义难以拓展。
+> 
+> 在这个语义中，局部的值被记录在了语法中；`\sigma`设计时就是全局的memory.
 
 ### 引入 动态data
 
@@ -68,13 +78,24 @@ newvar在并行语义中会很集中考虑. 语义一定要体现局部性.
 
 Heap是一个partial mapping，相同指针可能指向同一处（共享内存）. Values也增加`Loc`（地址）类型. Config也就进化为(c, (s, h)). 分离逻辑中集中考虑这一部分.
 
-四个新statement: allocation / lookup / mutation / deallocation.
+> 2021.11: heap 强调它是有限的；它含有的是已allocate的内存.
+
+四个新statement: allocation / lookup(load) / mutation(store) / deallocation.
+
+> 2021.11: 注意：我们是在statement级增加的heap操作，而非表达式级别，如此表达式求值时不必考虑heap location这个东西.
+> allocation 不会出错；free可能出错；新的内存地址一定是没分配过的，释放的内存地址（以及store/load）一定是分配过的.
 
 ### 进一步简化表示方法：Contextual Semantics
 
-$\mathcal{E}$. $[\;]$暗示下一个要被分析的子节点.
+> 2021.11: SOS的定义时，用子结构的SOS（放在前提中），构建更大的具体结构的语义. 但我们观察到每次修改的只是“redex”（比如对于表达式，我们只会规约 `n op n`，从来不会规约 `e op n`）. 语法树的其他部分都可以归为context. 
+> 
+> "redex" 是语义只可能会规约的叶节点..
+
+$\mathcal{E}$. $[\;]$暗示下一个要被分析的子节点. 
 
 Redex + Evaluation contexts. 虽然说是分别考虑了local / global rule，我觉得没啥变化. 还是用“在某状态下，根据某节点和其孩子们的pattern确定下一步的执行动作”.
+
+> 2021.11: 虽然还是模式匹配，但是对context和redex两个概念进行了划分，使得语义清晰了
 
 就是写起来更简单了，更符合我们的理解方式.
 
