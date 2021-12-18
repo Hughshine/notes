@@ -1,13 +1,43 @@
 # 0x07 Hoare Logic
 
+> 在命令式程序上做数学推理
+
+partial&total correctness: `{p}c{q}`将c看作一个函数，那么partial correctness中，它的作用域并不是满足p的状态的全部
+
+valid Hoare triple的含义（一个triple是valid，iff）：
+1. （partial）：如果c从满足p的某个状态开始执行，且这个执行终止，那么终止状态满足q. 
+2. （total）：如果c从满足p的某个状态开始执行，那么这个执行会终止，且终止状态满足q.
+
+> 一般来说，分别证明终止性进和partial correctness更容易
+
+logical(ghost) variables: 不再程序中出现的变量，具有常量值. "symbol"
+
+assertion language. 语法包含表达式，包含predicate. 它定义在state上，其语义就定义为satisfication, (`\sigma |= p`).
+
+specification并不好写. 需要注意到每个assertion中出现的变量，都是在"那个程序点"时它的值. 不过要注意的是，assertion和状态的微妙差异. {x=1}可以对应{(x,1)...}，也就是其他变量出没出现都无所谓. 可以说assertion只关注一个状态的局部，其他地方没有约束.
+
+***
+
+proof is a tree. TODO
+
+一个关键之处是，Hoare logic，将关于状态的动态语义，完全转换为了语法公式上的替换——使用Hoare logic做证明时，不再（需要）考虑语义！只是在操作字符串！和证明一个assertion一样.
+
+***
+
+## rules
+
+对每个rule的正确性的解释；Notion中有笔记
+
+> 为什么叫 consequence rule：Hoare logic下，自然的推理，任何成立的[前提]的自然的“结果”（consequence）. 将triple前条件强化、后条件弱化。  
+
+***
+
 1. 自动程序证明：在关键的地方插入assertion，程序生成一堆VC，转为验证这些VC是否是全真的。并不一定一定可以找到derivation，但可以找到大部分。
 
 2. Soundness & Completeness
 
 
 最重要的还是**定义**. 这一部分讲的Soundness && Completeness是最重要的。Soundness 意味着 $\vdash\{p\}c\{q\}\Rightarrow\models\{p\}c\{q\}$（所有可以derive出来的，都是Valid的）, Completeness与之相反（所有Valid的，都可以被推导规则derive出来）。显然我们要满足Soundness。我们的逻辑要分两层，Hoare Logic和其底层的谓词逻辑（可以用其他逻辑），Hoare Logic本身是（Partial）Complete的，如果底层逻辑是Complete的。谓词逻辑的Completeness受哥德尔不完备性定理限制。
-
-
 
 $\vdash p$ : there exists a proof or derivation of $p$ following the inference rules.
 
