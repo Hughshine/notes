@@ -1,22 +1,23 @@
 计算理论：
+
 1. 研究算法：研究某特定算法的计算资源消耗（主要是upper bound）
 2. 研究复杂度：研究某特定问题所需的最低计算资源（lower bound）
 
 学习数学，重要的是基于某些概念的思考（live the life of those definitions），这使学者内化新的看待问题的视角。
 
 > 教材，Computational Complexity, A Modern Approach. Sanjeev Arora, Boza Barak
-> 
+>
 > Mathematics and Computation Avi Wigderson. 比较新，可能更通识一点。
-> 
+>
 > Computational Complexity, Christos. 更老一点，质量更好，但是内容少一点。
 
 ## Computational Model: 什么是计算？
 
 计算可以非常广义。"Computation is the evolution process of some **environment** with a sequence of **simple, local step**". Like, 大脑中的神经元，细胞中的蛋白质...
 
-1. Lambda Calculus. 
+1. Lambda Calculus.
 2. Turing Machine.
-3. Game of Life. 
+3. Game of Life.
    1. 诞生规则：空方格周围若有3个方块，则诞生
    2. 存活规则：某方块周围若有2/3个方块，下一刻仍然存活
    3. 死亡规则：否则方块死亡
@@ -58,7 +59,7 @@ Intuition: 原字符集可以用二进制字符集encode。
 
 > 疑惑，这里的f是的作用域是{0, 1}*，不是\Gamma... TODO
 
-**线性加速定理**：任何时间为T(n)的图灵机计算，其高阶的常数都可以变得任意小（通过扩充字符集，状态，状态转移函数）。（需要保留扫描的线性复杂度，$T'(n) = \episilon T(n) + n + 2$.）。这会使机器变大。
+**线性加速定理**：任何时间为T(n)的图灵机计算，其高阶的常数都可以变得任意小（通过扩充字符集，状态，状态转移函数）。（需要保留扫描的线性复杂度，$T'(n) = \epsilon T(n) + n + 2$.）。这会使机器变大。
 
 > TODO: 加深对linear spead up的直觉理解
 
