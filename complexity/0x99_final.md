@@ -22,6 +22,8 @@ $coNP:x\in L\Leftrightarrow \forall u\in\{0,1\}^{(|x|)},M(x,u)=1$
 
 **$P\not\subseteq \textit{EXP}$ 的证明**
 
+> Time Hierarchy Theorem: 两个（time-construcible）函数f, g，满足f(n)log(f(n))=o(g(n))，那么Time(f(n))$\subset$Time(g(n)). 用额外log时间模拟，对角线取反构造新图灵机，这个图灵机与所有被模仿的图灵机都不同（也就不在对应的类中了）
+
 结论，若P!=NP，两者间存在语言
 
 ladner's' theorm, 理解，不需要知道怎么证明
@@ -81,7 +83,7 @@ $P\subseteq P/poly$
 
 ## 随机计算
 
-BPP定义：$\{L|\exists M,p,\forall x\in\{0,1\}^{*},\textbf{Pr}_{r\in_R\{0,1\}^{p(|x|)}}[M(x,r)=L(x)]\}$，其中r是一个随机bit序列（关于每一步）. M自然是多项式时间的图灵机. 
+BPP定义：$\{L|\exists M,p,\forall x\in\{0,1\}^{*},\textbf{Pr}_{r\in_R\{0,1\}^{p(|x|)}}[M(x,r)=L(x)]\}$，其中r是一个随机bit序列（关于每一步）. M自然是多项式时间的图灵机.
 
 error是怎么降下来的，定理7.10：
 对于一个正确概率保证在$0.5+n^{-c}$的概率图灵机，我们构造一个新的概率图灵机，它操作旧图灵机k次，并取多数结果作为自己的结果。我们尝试去看这个新图灵机的正确概率的界。
@@ -91,14 +93,26 @@ error是怎么降下来的，定理7.10：
 > 不清楚$\delta$为什么要取这个（放缩时看起来并不直接）... 而且感觉要求的概率和输入长度有关系也感觉怪怪的。
 > 书上的意思是，用这个$\delta$，应该可以比较准确地放缩到$2^{-|x|^d}$,取$k=8{|x|}^{2c+d}$. p就看作是$0.5$.
 
-
 ## 交互式证明
 
-PSPACE = IP 是一个很重要的结论，为了证明它，研究了许多有用的结论（？）
+[维基百科](https://zh.wikipedia.org/wiki/%E4%BA%A4%E4%BA%92%E5%BC%8F%E8%AF%81%E6%98%8E%E7%B3%BB%E7%BB%9F)
+对交互式证明的直觉讲的还是蛮好的... （对于NP问题，prover可以看作是EXP的）（相当于checker和searcher分离，集中考虑checker）
 
-Sum check protocol? 8.3.1
+Sum check protocol?
 
-Sum check protocol. 看一下. 8.3.1
+> 去检查一个d阶多项式，遍历所有输入，得到的和是否为某个数字K（允许运算中保持mod p）.
+> protocol：递归地检查
+>
+> * V: n=1, check g(1) + g(0) = k. n>1, ask p to send h(x1)
+> * P: send s(x1) (should be h(x1) -- 对于合法的prover)
+> * V: check s(0) + s(1) = k. 不等则拒绝，等于，则check子问题h(rand mod p) = g(a, ...)【此时少了一个变量】
+
+PSPACE = IP 是一个很重要的结论，为了证明它，研究了许多有用的结论.
+![](image/0x99_final/1640062132538.png)
+
+证明：induction on n. 最主要一步是prover返回的s is not h时，verifier可以发现两者不同的概率是$1-d/p$（这一点不是很确定，先强行记住吧）
+
+![](image/0x99_final/1640062242811.png)
 
 ## PCP
 
