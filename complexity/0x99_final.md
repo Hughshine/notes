@@ -116,13 +116,18 @@ PSPACE = IP 是一个很重要的结论，为了证明它，研究了许多有�
 
 ## PCP
 
-定义，极端情况
+verifier是poly的。(r(n), q(n))-PCP，r(n)指随机bit的界，q(n)指可以访问的certificate的长度的界
 
-1. P = PCP(0, log(n))【理解一下就好，应该不会考】
-2. NP = ?
+1. P = PCP(0, 0)
+2. P = PCP(0, log(n))：需要看log的certificate：可以用P时间遍历
+3. NP = PCP(0, poly(n)). 不用随机位，看多项式位数的certificate
 
-WM - HD 性质？
+PCP theorem: NP = PCP(logn, 1).  "every NP language has a highly efficient PCP verifier"
+
+hardness of approximation... 
+
+> WM - HD 性质
 
 # 作业
 
-两个作业整理一下。。
+![](image/0x99_final/1640063647205.png)两个作业整理一下。
