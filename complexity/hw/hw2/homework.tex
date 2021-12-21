@@ -1,0 +1,48 @@
+\documentclass[11pt,largemargins]{homework}
+
+
+\newcommand{\hwname}{李煦阳 DZ21330015}
+\newcommand{\hwemail}{njulixuy@163.com}
+\newcommand{\hwtype}{作业1}
+\newcommand{\hwnum}{}
+\newcommand{\hwclass}{计算复杂性}
+\newcommand{\hwlecture}{}
+\newcommand{\hwsection}{}
+\renewcommand{\qed}{$\hfill\blacksquare$}
+
+% This is just used to generate filler content. You don't need it in an actual
+% homework!
+\usepackage{lipsum}
+\usepackage{ctex}
+
+\begin{document}
+\maketitle
+
+\question*{5.13, VC-Dimension}
+
+VC-d的定义：$\mathcal{S}=\{S_1,S_2,\dots,S_m\}$是有限集$U$的子集集合（表示某类模型所有可以产生的二分），集合$\mathcal{S}$的VC-d指可以被该模型二分的最大集合的大小（这个集合，无论我们如何划分它，这个划分都可以被某个实例模型产生的二分描述）（the size of largest set $X\subseteq U$, such that $\forall X'\subseteq X, $\\$\exists i, S_i \cap X = X'$）。% 不清楚U是有限集有什么影响，可以就当作数据量吧
+
+\begin{alphaparts}
+  \questionpart
+  要证明所有的\textbf{NP}问题（$L\in \textbf{NP}$）都可以规约至停机问题。\newline
+  已知$\forall L\in \textbf{NP}.\;\exists M,p.\;\forall x.\;x\in L \Leftrightarrow \exists u\in \{0,1\}^{p(|x|)}.\;M(x,u)=1.$\newline
+  令规约函数$f(x) = \langle\langle\alpha\rangle, \langle\beta, \theta, x\rangle\rangle$，其中$M_\beta = M$, $\theta$为p的编码，$M_\alpha$重复遍历$u\in\{0,1\}^{p|x|}$，在$M_{\beta}(x, u) = 1$时停机，否则不停机。易知其复杂度为常数，是一个双射函数。\\
+  基于$M$构造\texttt{HALT}问题：
+  输入为$\langle\langle\alpha\rangle,\langle\beta, \theta, x\rangle\rangle$， 其对应的语言为$L'$\\
+  现证$x\in{L}\Leftrightarrow f(x)\in {L'}$.
+  \begin{enumerate}
+    \item $x\in L\Rightarrow f(x)\in L'$\\
+          由构造$L'$的方式可知，对于$x\in L$，$f(x)$在\texttt{HALT}上会停机，所以$f(x)\in L'$。
+    \item $f(x)\in L'\Rightarrow x\in L$\\ 
+          反证，若存在$f(x)\in L'$且$x\not\in L$，则$x$在构造的图灵机上不会停机，所以\texttt{HALT}$(f(x))$不为$0$，所以$f(x)\not\in L'$
+  \end{enumerate}\qed
+  \questionpart
+  \texttt{HALT}问题不是\textbf{NP}问题。\\
+  易知\texttt{HALT}问题是不可判定问题（并不存在一种算法可以描述\texttt{HALT}问题）（将\texttt{HALT}问题带入自身可证）。只需证所有\textbf{NP}问题都是可判定的（即可以找到一个通用算法），便可说明\texttt{HALT}不是\textbf{NP}。
+
+  对于每个\textbf{NP}问题，已知$M$，\textbf{P}，对于一个输入$x$，我们可以对解空间进行$EXP(p(|x|)$次枚举寻找certificate，并在多项式时间内演算每个可能解的真假（总复杂度为$EXP(p(|x|))$），所以\textbf{NP}是可判定的。
+  
+  \qed
+\end{alphaparts}
+
+\end{document}
