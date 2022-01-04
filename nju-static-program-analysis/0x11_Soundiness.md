@@ -23,9 +23,12 @@ soundy analysis: analysis is mostly sound, with **well-identified** unsound trea
 语言的动态特性，使得静态分析变得很困难。尤其是很重要的信息，是否是元信息很重要。比如class, method, field.
 
 如何分析java reflection：
+
 * string constant analysis + pointer analysis: 我们终究要得到源信息，它们有可能以字符串存储、可能存放于配置文件中.. 但可能就是无法在静态条件确定。
-* type inference + string analysis + pointer analysis: 当我们并不能静态确定string arguments时，我们可以根据usage points进行推理。
+* type inference + string analysis + pointer analysis: 当我们并不能静态确定string arguments时，我们可以根据usage points进行推理。【会假设程序员使用的是对的】
 * assisted by dynamic analysis
+
+为什么是soundy：会在信息不足时对反射做unsound分析（而不是理解为sound，认为它会invoke所有方法）。
 
 ### Native Code
 
@@ -37,7 +40,7 @@ JNI: Java native interface. 接口最后会调用本机原生代码，一般是�
 
 JNI functions 可以去创建对象，access fields，invoke methods等in native code. 知晓底层代码做了什么是困难的。
 
-目前处理native code的方式：manually models the critical native code.比如有些函数为了高校，使用c去写，但实际功能可由java表达。
+目前处理native code的方式：manually models the critical native code.比如有些函数为了高效，使用c去写，但实际功能可由java表达（模拟）。
 
 Recent Work: identifying java calls in native code via Binary Scanning. (ISSTA 2020)
 

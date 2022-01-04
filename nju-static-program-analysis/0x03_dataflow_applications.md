@@ -88,7 +88,7 @@ Meet：取交集
 
 > Expression x op y is available at program point p: if (1) all paths from entry to p **must** pass through the evaluation of x op y(之前一定计算了该表达式). and (2) after the last evaluation of x op y, there is no redefinition of x or y(且该表达式的值被改变).
 
->  Abstraction: all expressions in a program. -> bit vec
+> Abstraction: all expressions in a program. -> bit vec
 
 > Transfer function(forward): $OUT[B] = gen_B \cup (IN[B]-kill_B)$. $IN[B]$取交集（按位与）. $gen_B$指在块B生成的且在结束后还有效的表达式（变量没有在该表达式出现后重声明）.
 
@@ -106,5 +106,7 @@ Meet：取交集
 注意初始化条件。注意终止性的证明。
 
 > gen, kill, transfer function, initialize, 想清楚定义，问题也就清楚了。
+>
+> 为什么都是gen cup (In - kill)而没有(In cup gen) - kill，应该就是因为分析问题本身吧。可能有一个启发式的解释，但感觉不是特别必要去记。
 
 ![](./pics/03-02.png)

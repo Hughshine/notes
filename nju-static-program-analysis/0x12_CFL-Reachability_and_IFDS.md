@@ -16,7 +16,6 @@ Realizable Paths: CFG中的一个path，必须满足“调用点”与“函数�
 
 ![](./pics/12-02.png)
 
-
 ## IFDS: A Program Analysis Framework via Graph Reachability
 
 (Interprocedural, Finite, Distributive, Subset Problem)
@@ -30,13 +29,15 @@ Provide meet-over-all-realizable-paths(MRP) solution.
 ### Overview
 
 Given a program P, and a dataflow-analysis problem Q
+
 1. Build **supergraph** G* for program P, define flow functions for edges in G* based on Q.
 2. Build **exploded supergraph** G# for P by transforming flow functions to representation relations(graphs)
-3. Q问题可以解决(finding out MRP solutions)，via applying Tabulation algorithm an G#. 
+3. Q问题可以解决(finding out MRP solutions)，via applying Tabulation algorithm an G#.
 
 #### SuperGraph G*
 
 G*有三类与函数掉用有关的边：
+
 1. intraprocedural的call->ret边
 2. interprocedural的call->start边
 3. interprocedural的exit->ret边
@@ -45,7 +46,7 @@ Flow functions: 我觉得就是transfer function. 用匿名函数写出。【我
 
 meet？这里是以realizable path为单位，不必考虑meet.
 
-> * 第76页`a = a - g`的意思，应该是如果a和g有一个可能是未初始化的，那么这一次赋值会使a也可能是未初始化的（或者说成行为未定义更合适？）。
+> * 第76页 `a = a - g`的意思，应该是如果a和g有一个可能是未初始化的，那么这一次赋值会使a也可能是未初始化的（或者说成行为未定义更合适？）。
 > * 第78页，call-to-return-site edge的flow function是在处理局部变量吗？好像不是，在第5课讲interprocedural的时候，call->ret的边要去掉LHS，因为会在return时被返回，（call2start edge只传局部变量）。这里也是一样的，注意，g定义为全局变量。call->ret将全局变量g删除，因为g之后是否是未定义的，只取决于被调用函数）
 > * 第79页，exit-to-return-site edge，是在清除局部变量.
 
@@ -53,7 +54,7 @@ meet？这里是以realizable path为单位，不必考虑meet.
 
 exploded supergraph看起来就是将无副作用的flow function写成可视化的的图的形式。（似乎要求域是有限的？）
 
-【理解Exploded SuperGraph】每个函数转换成它的representation relation. 多出来的0节点用来处理无关输入的输出。0->0是glue edge, "永远可以有无关输入的输出"。当有了0->x后，不需要有y->x. 
+【理解Exploded SuperGraph】每个函数转换成它的representation relation. 多出来的0节点用来处理无关输入的输出。0->0是glue edge, "永远可以有无关输入的输出"。当有了0->x后，不需要有y->x.
 
 【TODO：计算representation relation的算法】
 
@@ -67,13 +68,14 @@ exploded supergraph看起来就是将无副作用的flow function写成可视化
 
 然后可以在这张exploded supergraph上，应用Tabulation Algorithm to identify MRP solutions. —— 我们可以得到exploded supergraph上的每个node，是否有MRP可达。问题被转化为图上的可达性判断问题！
 
-#### Tabulation Algorithm: Core Working Mechanism 
+#### Tabulation Algorithm: Core Working Mechanism
 
 在我们得到的exploded supergraph上，我们要找realizable paths可达的点。
 
 复杂度O(ED^3). 做的事情：括号匹配 + 路径探索；“处理调用边、返回边、总结边，将间接可达的两节点直接连结起来”。用X_n存储从开始节点，到达节点n的所有data fact.
 
 是怎么在算法过程排除掉unrealizable path的？... 先关注某一个data fact：
+
 * 处理括号匹配：每次到达返回点ep'时，开始匹配，找到所有调用点和相应的返回点；
 * 处理总结边，动态规划，节省时间（避免重复分析调用同一个函数的情况——context？若考虑context，应该只不过是动态的不确定次数的调用，被抽象成一个还是多个的问题。）：<Call, dm> to <Ret, dn>, 经过函数会将dm性质变为dn.
 
@@ -81,7 +83,6 @@ exploded supergraph看起来就是将无副作用的flow function写成可视化
 
 ### Understanding the Distributivity of IFDS
 
-IDFS一次只处理一个变量的传播，这种传播以分配律为特征。F(x \wedge y) = F(x) \wedge F(y)
+IDFS一次只处理一个变量的传播，这种传播以分配律为特征。注意，这里的分配律和dataflow analysis中说的分配律不一样，是指“subset”（IFDS的S）操作的分配律。
 
 constant propagation不行；pointer analysis不行（？ppt171. flow function's fact 没有alias information，我理解是需要的信息很多（points-to relation和图）等等... （而且我们学的也是flow-insensitive的？）就是看起来就不合适QAQ.. D无法是指针，因为需要传播points-to information，还需要额外的数据结构）。
-

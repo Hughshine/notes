@@ -89,13 +89,15 @@ may/must 初始化为bottom/top 的原因是各自的“unsafe”定义不同。
 
 > 最小/最大不动点的原因，是因为meet只做了最少应该做的（比如没有直接变成1111），而transfer function也是在做最基本做的事。实际上，最终还是看transfer function和meet的定义的正确性。
 
-![](./pics/04-04.png)
+![img](./pics/04-04.png)
 
 how precise is our solution? 与Meet-Over-All-Paths Solution(MOP) 对比。（precision metric）
 
-结论：如果我们的转移函数是可分配的，那么和MOP一样precise（gen/kill problems都符合）. 对于某些分析，是不符合可分配律的。
+结论：如果我们的转移函数是可分配的，那么和MOP一样precise（gen/kill problems都符合）. 对于某些分析，是不符合可分配律的【比如Constprop】。
 
-MOP[S_i]是每一条以S_i为结尾的所有路径的meet/join. => some paths may be not executable. not fully precise.  路径可能是无限的，无法枚举的.
+MOP[S_i]是每一条以S_i为结尾的所有路径的meet/join（以路径为单位，而非以基本块为单位）. => some paths may be not executable. not fully precise.  路径可能是无限的，无法枚举的.
+
+> 要注意，静态分析没有区分分支判断。有的分支可能不会走。但静态分析算法不会管这个，它一定会meet，（包括MOP）；MOP中，还会包含unrealizable path
 
 我们的算法和MOP的差异：
 
