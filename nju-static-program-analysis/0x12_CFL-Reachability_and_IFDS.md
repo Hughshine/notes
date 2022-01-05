@@ -85,4 +85,6 @@ exploded supergraph看起来就是将无副作用的flow function写成可视化
 
 IDFS一次只处理一个变量的传播，这种传播以分配律为特征。注意，这里的分配律和dataflow analysis中说的分配律不一样，是指“subset”（IFDS的S）操作的分配律。
 
-constant propagation不行；pointer analysis不行（？ppt171. flow function's fact 没有alias information，我理解是需要的信息很多（points-to relation和图）等等... （而且我们学的也是flow-insensitive的？）就是看起来就不合适QAQ.. D无法是指针，因为需要传播points-to information，还需要额外的数据结构）。
+flow function，必须可以分解为一个OUT[item]只依赖某一个IN[item]. constprop不可，因为它依赖两个Fact. linear constprop 是可以的.
+
+这些特殊的分析，借助IFDS，可以实现任意k的call site sensitivity.
