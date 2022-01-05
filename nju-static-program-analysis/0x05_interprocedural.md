@@ -32,6 +32,8 @@ call graph: a set of call edges from call-sites to their target methods (callees
 
 定义 dispatch 过程：（注意，只关注m的name and descriptor，不关注m的“类”（这个类是静态的，dyn dispatch正是调整了它））
 
+> resolve 假设变量可能指向其定义类型的全部子类，所以会对每个子类都尝试dispatch，加入到结果集合中。
+
 ![](./pics/05-01.png)
 
 ### class hierarchy analysis
