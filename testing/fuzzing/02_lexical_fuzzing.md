@@ -55,3 +55,18 @@ But programs behavior is more subtle than the specification. Need white-box test
 
 * Black-Box testing is important to specify targeting functionality of the software. 
 * White-Box testing is important to test unspecified behaviors of the software does not ruin usability (is consistent).
+
+For C, compiler can instrument the code to record coverage.
+
+### Result checking (Oracle)
+
+1. Crash, means errors. (No extra oracle is needed).
+2. Normally exists with result. (Need oracle to check the result's correctness).
+    * Diff-testing is possible.
+
+
+## Mutation testing
+
+random testing mostly produce invalid tests that does not touch program's inner logic. Mutate a previously valid input is more possible to get another valid input that trigger new inner logic.  
+
+> https://lcamtuf.blogspot.com/2014/08/binary-fuzzing-strategies-what-works.html
